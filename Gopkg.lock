@@ -112,6 +112,18 @@
   version = "v1.0.2"
 
 [[projects]]
+  branch = "release-branch.go1.10"
+  digest = "1:353d3d4831f0e59e6954ac04fdc1d3681ced12df83d027d8d082ef7a1760d8f7"
+  name = "golang.org/x/net"
+  packages = [
+    "idna",
+    "lex/httplex",
+    "publicsuffix",
+  ]
+  pruneopts = "T"
+  revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
+
+[[projects]]
   branch = "master"
   digest = "1:67ec7d40ef7bec1aec971425848df401aa69786d93ccdf84c4244eef757337a6"
   name = "golang.org/x/sys"
@@ -123,12 +135,20 @@
   digest = "1:6164911cb5e94e8d8d5131d646613ff82c14f5a8ce869de2f6d80d9889df8c5a"
   name = "golang.org/x/text"
   packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
     "internal/gen",
+    "internal/tag",
     "internal/triegen",
     "internal/ucd",
+    "language",
+    "secure/bidirule",
     "transform",
+    "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
+    "unicode/rangetable",
   ]
   pruneopts = "T"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
@@ -148,6 +168,8 @@
   input-imports = [
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
+    "golang.org/x/net/lex/httplex",
+    "golang.org/x/net/publicsuffix",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

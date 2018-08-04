@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -30,7 +32,11 @@ func run(cmd *cobra.Command, args []string) {
 	if password == "" {
 		panic("Must provide a password")
 	}
-	nixplay.Login(username, password)
+	c, err := nixplay.Login(username, password)
+	if err != nil {
+		fmt.Printf("Login error: %v", err)
+	}
+	nixplay.GetConfig(c)
 }
 
 func main() {
