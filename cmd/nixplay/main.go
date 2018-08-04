@@ -37,6 +37,19 @@ func run(cmd *cobra.Command, args []string) {
 		fmt.Printf("Login error: %v", err)
 	}
 	nixplay.GetConfig(c)
+	albums, err := nixplay.GetAlbums(c)
+	if err != nil {
+		fmt.Printf("Fetch albums error: %v", err)
+	}
+	fmt.Printf("Albums: %v\n", albums)
+	if len(albums) > 0 {
+		album := albums[0]
+		photos, err := nixplay.GetPhotos(c, album.ID)
+		if err != nil {
+			fmt.Printf("Error fetching photos: %v\n", err)
+		}
+		fmt.Printf("Photos for %s: %v\n", album.Title, photos)
+	}
 }
 
 func main() {
