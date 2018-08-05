@@ -58,7 +58,7 @@ func doLogin(username string, password string) (auth, error) {
 		},
 	)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		return auth{}, err
 	}
 	defer resp.Body.Close()
 
@@ -77,14 +77,10 @@ func doLogin(username string, password string) (auth, error) {
 		jar.SetCookies(u, []*http.Cookie{c})
 	}
 
-	fmt.Printf("Response: %v\n", resp)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		return auth{}, err
 	}
-	fmt.Printf("Body: %v\n", body)
-	bodyStr := string(body[:])
-	fmt.Printf("Bodystr: %v\n", bodyStr)
 
 	authOk := &loginResponseSuccess{}
 	err = json.Unmarshal(body, authOk)
@@ -94,7 +90,7 @@ func doLogin(username string, password string) (auth, error) {
 		err = json.Unmarshal(body, authFail)
 		if err != nil {
 			// Couldn't unmarshal as success or failure.
-			fmt.Printf("Error unmarshalling response: %v\n", err)
+			return auth{}, err
 		}
 
 		// Parsed as error. There can be a map of an array of arrays of strings as
