@@ -99,6 +99,19 @@ func doSmugmug() {
 		fmt.Printf("Getting album failed: %v\n", err)
 	}
 	fmt.Printf("%v\n", album)
+
+	node, err := smugmug.GetNode(client, "ZsfFs")
+	if err != nil {
+		fmt.Printf("Getting node failed: %v\n", err)
+	}
+	fmt.Printf("%v\n", node)
+
+	user, err := smugmug.GetThisUser(client)
+	if err != nil {
+		fmt.Printf("Getting user failed: %v\n", err)
+	}
+	fmt.Printf("%v\n", user)
+
 }
 
 func run(cmd *cobra.Command, args []string) {

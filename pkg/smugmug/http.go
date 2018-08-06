@@ -7,6 +7,24 @@ import (
 	"net/http"
 )
 
+// URIRef is the SmugMug API type for a URI in a response
+type URIRef struct {
+	URI            string `json:"Uri"`
+	Locator        string
+	LocatorType    string
+	URIDescription string `json:"UriDescription"`
+	EndpointType   string
+}
+
+type responseCommon struct {
+	URI            string `json:"Uri"`
+	URIDescription string `json:"UriDescription"`
+	DocURI         string `json:"DocUri"`
+	EndpointType   string
+	Locator        string
+	LocatorType    string
+}
+
 // GetUnmarshalJSON gets a JSON response from url and unmarshals into target
 func GetUnmarshalJSON(c *http.Client, url string, target interface{}) error {
 	req, err := http.NewRequest("GET", url, nil)
@@ -27,7 +45,6 @@ func GetUnmarshalJSON(c *http.Client, url string, target interface{}) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Body: %s\n", string(body[:]))
 	err = json.Unmarshal(body, &target)
 	if err != nil {
 		return err

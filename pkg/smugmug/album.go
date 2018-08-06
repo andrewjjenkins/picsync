@@ -5,32 +5,6 @@ import (
 	"net/http"
 )
 
-// AlbumURI is the data for a particular album URI
-type AlbumURI struct {
-	URI            string `json:"Uri"`
-	Locator        string
-	LocatorType    string
-	URIDescription string `json:"UriDescription"`
-	EndpointType   string
-}
-
-// AlbumURIs are the URIs associated with an album
-type AlbumURIs struct {
-	AlbumComments       AlbumURI
-	AlbumGeoMedia       AlbumURI
-	AlbumHighlightImage AlbumURI
-	AlbumImages         AlbumURI
-	AlbumPopularMedia   AlbumURI
-	AlbumPrices         AlbumURI
-	AlbumShareURIs      AlbumURI `json:"AlbumShareUris"`
-	Folder              AlbumURI
-	HighlightImage      AlbumURI
-	Node                AlbumURI
-	NodeCoverImage      AlbumURI
-	ParentFolders       AlbumURI
-	User                AlbumURI
-}
-
 // Album is the metadata for a SmugMug album
 type Album struct {
 	URI                 string `json:"Uri"`
@@ -55,21 +29,16 @@ type Album struct {
 	SortDirection       string
 	SortMethod          string
 	Title               string
-	URLName             string `json:"UrlName"`
-	URLPath             string `json:"UrlPath"`
-	WebURI              string `json:"WebUri"`
-	URIs                AlbumURIs
+	URLName             string            `json:"UrlName"`
+	URLPath             string            `json:"UrlPath"`
+	WebURI              string            `json:"WebUri"`
+	URIs                map[string]URIRef `json:"Uris"`
 }
 
 type albumResponse struct {
 	Response struct {
-		URI            string `json:"Uri"`
-		URIDescription string `json:"UriDescription"`
-		DocURI         string `json:"DocUri"`
-		EndpointType   string
-		Locator        string
-		LocatorType    string
-		Album          Album
+		responseCommon
+		Album Album
 	}
 	Code    int
 	Message string
@@ -77,8 +46,8 @@ type albumResponse struct {
 
 func (a Album) String() string {
 	return fmt.Sprintf(
-		"Album %s (%s, %d images, updated %s): %s",
-		a.Title, a.NiceName, a.ImageCount, a.LastUpdated, a.WebURI,
+		"Album %s (%s, %s, %d images, updated %s): %s",
+		a.Title, a.NodeID, a.NiceName, a.ImageCount, a.LastUpdated, a.WebURI,
 	)
 }
 
