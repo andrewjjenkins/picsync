@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/andrewjjenkins/nixplay/pkg/nixplay"
 	"github.com/andrewjjenkins/nixplay/pkg/smugmug"
@@ -103,6 +105,16 @@ func doSyncSmugmugToNixplay(smugmugAlbumName string, nixplayAlbumName string) er
 		work.ToUpload, work.ToDelete,
 	)
 
+	for _, up := range work.ToUpload {
+		fmt.Printf("Uploading %s to Nixplay...", up.FileName)
+		err := uploadSmugmugToNixplay(up, npAlbum.ID, smClient, npClient)
+		if err != nil {
+			fmt.Printf("\n")
+			return err
+		}
+		fmt.Printf("DONE\n")
+	}
+
 	return nil
 }
 
@@ -162,4 +174,19 @@ func calcSyncWork(smImages []*smugmug.AlbumImage, npPhotos []*nixplay.Photo) (*s
 	}
 
 	return &work, nil
+}
+
+func uploadSmugmugToNixplay(from *smugmug.AlbumImage, toAlbum int, smClient *http.Client, npClient *http.Client) error {
+	imgResp, err := smClient.Get(from.ArchivedURI)
+	if err != nil {
+		return err
+	}
+	defer imgResp.Body.Close()
+
+	filename := from.FileName
+	filetype := imgResp.Header.Get("content-type")
+	filesizeStr := imgResp.Header.Get("content-length")
+	filesize, err := strconv.ParseUint(filesizeStr, 10, 64)
+
+	return nixplay.UploadPhoto(npClient, toAlbum, filename, filetype, filesize, imgResp.Body)
 }

@@ -142,3 +142,40 @@ func GetConfig(c *http.Client) {
 	}
 	fmt.Printf("Body: %v\n", string(body[:]))
 }
+
+func doPost(c *http.Client, urlString string, values *url.Values) (*http.Response, error) {
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(
+		"POST",
+		urlString,
+		strings.NewReader(values.Encode()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
+
+	var csrfToken string
+	cookies := c.Jar.Cookies(u)
+	for _, cookie := range cookies {
+		if cookie.Name == "prod.csrftoken" {
+			if csrfToken != "" {
+				return nil, fmt.Errorf(
+					"Multiple Nixplay CSRF protection cookies (%s)",
+					csrfToken,
+				)
+			}
+			csrfToken = cookie.Value
+		}
+	}
+	if csrfToken == "" {
+		return nil, fmt.Errorf("No Nixplay CSRF protection cookie found")
+	}
+	req.Header.Set("X-CSRFToken", csrfToken)
+
+	return c.Do(req)
+}
