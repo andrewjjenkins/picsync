@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:21f9ed057e842303f99850244d580a8a661eec9c43066338402b5f17e0594730"
+  name = "github.com/dghubble/oauth1"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "70562a5920ad9b6ff03ef697c0f90ae569abbd2b"
+  version = "v0.4.0"
+
+[[projects]]
   digest = "1:7fc160b460a6fc506b37fcca68332464c3f2cd57b6e3f111f26c5bbfd2d5518e"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -116,6 +124,7 @@
   digest = "1:353d3d4831f0e59e6954ac04fdc1d3681ced12df83d027d8d082ef7a1760d8f7"
   name = "golang.org/x/net"
   packages = [
+    "context",
     "idna",
     "lex/httplex",
     "publicsuffix",
@@ -166,6 +175,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/dghubble/oauth1",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "golang.org/x/net/lex/httplex",

@@ -2,111 +2,102 @@ package smugmug
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"net/http/cookiejar"
-	"net/url"
-	"strings"
-	"time"
 
-	"github.com/andrewjjenkins/nixplay/pkg/util"
-	"golang.org/x/net/publicsuffix"
+	"github.com/dghubble/oauth1"
 )
 
-type loginRequest struct {
-	Email        string `json:"Email"`
-	Password     string `json:"Password"`
-	OTPCode      string `json:"OTPCode"` // Empty for me, but still present
-	KeepLoggedIn int    `json:"KeepLoggedIn"`
-	IsOAuth      int    `json:"IsOAuth"`
-	Method       string `json:"method"`
-	Token        string `json:"_token"`
+const (
+	requestTokenURL = "https://secure.smugmug.com/services/oauth/1.0a/getRequestToken"
+	accessTokenURL  = "https://secure.smugmug.com/services/oauth/1.0a/getAccessToken"
+	authorizeURL    = "https://secure.smugmug.com/services/oauth/1.0a/authorize"
+)
+
+// AccessAuth is the OAuth info required to get a new session token
+type AccessAuth struct {
+	Token          string
+	Secret         string
+	ConsumerKey    string
+	ConsumerSecret string
 }
 
-type auth struct {
-	Jar http.CookieJar
+func newOauthConfig(consumerKey string, consumerSecret string) *oauth1.Config {
+	return &oauth1.Config{
+		ConsumerKey:    consumerKey,
+		ConsumerSecret: consumerSecret,
+		Endpoint: oauth1.Endpoint{
+			RequestTokenURL: requestTokenURL,
+			AuthorizeURL:    authorizeURL,
+			AccessTokenURL:  accessTokenURL,
+		},
+		CallbackURL: "oob",
+	}
 }
 
-type loginSession struct {
-	String    string `json:"string"` // https://www.smugmug.com
-	Time      int    `json:"time"`   //
-	Signature string `json:"signature"`
-	Version   int    `json:"version"`
-	Algorithm string `json:"algorithm"` // sha1
-}
+// Login does the OAuth1 login flow to smugmug, resulting in Access tokens
+func Login(consumerKey string, consumerSecret string) (*AccessAuth, error) {
+	config := newOauthConfig(consumerKey, consumerSecret)
 
-func getLoginSession() {
-
-}
-
-func doLogin(username string, password string) (*auth, error) {
-	uStr := "https://secure.smugmug.com/services/api/json/1.4.0/"
-	u, err := url.Parse(uStr)
+	reqToken, reqSecret, err := config.RequestToken()
 	if err != nil {
 		return nil, err
 	}
 
-	loginVals := url.Values{
-		"Email":        {username},
-		"Password":     {password},
-		"OTPCode":      {""},
-		"KeepLoggedIn": {"1"},
-		"IsOAuth":      {"0"},
-		"method":       {"rpc.user.login"},
-		"_token":       {""},
-	}
-
-	req, err := http.NewRequest("POST", uStr, strings.NewReader(loginVals.Encode()))
+	authURL, err := config.AuthorizationURL(reqToken)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("origin", "https://secure.smugmug.com")
-	req.Header.Add("referer", "https://secure.smugmug.com/login")
-	req.Header.Add("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
+	fmt.Printf("Go to %s to authorize\n", authURL.String())
+	fmt.Printf("Enter the six-digit code: ")
+	var verifier string
+	entries, err := fmt.Scanln(&verifier)
+	if err != nil {
+		return nil, err
+	}
+	if entries != 1 {
+		return nil, fmt.Errorf("Did not read a verifier (%d)", entries)
+	}
+
+	accessToken, accessSecret, err := config.AccessToken(reqToken, reqSecret, verifier)
+
+	return &AccessAuth{
+		Token:  accessToken,
+		Secret: accessSecret,
+	}, nil
+}
+
+// Access returns a client that will use the access auth info to sign requests
+func Access(access *AccessAuth) (*http.Client, error) {
+	config := newOauthConfig(access.ConsumerKey, access.ConsumerSecret)
+	token := oauth1.NewToken(access.Token, access.Secret)
+	client := config.Client(oauth1.NoContext, token)
+	req, err := http.NewRequest("GET", "https://api.smugmug.com/api/v2!authuser", nil)
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Add("accept", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Error login: %v\n", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
-
-	jar, err := cookiejar.New(&cookiejar.Options{
-		PublicSuffixList: publicsuffix.List,
-	})
-	if err != nil {
-		return nil, err
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("login failed (%d)", resp.StatusCode)
 	}
-	cookies := util.ReadSetCookies(resp.Header)
-	for _, c := range cookies {
-		if !strings.HasSuffix(c.Domain, ".smugmug.com") {
-			fmt.Printf("Skipping cookie %s, domain %s dangerous\n", c.Name, c.Domain)
-			continue
-		}
-		jar.SetCookies(u, []*http.Cookie{c})
-	}
-
-	fmt.Printf("Response: %v\n", resp)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	fmt.Printf("Body: %v\n", body)
-	bodyStr := string(body[:])
-	fmt.Printf("Bodystr: %v\n", bodyStr)
-
-	return nil, err
+	return client, nil
 }
 
+/*
 // Login logs in to SmugMug
-func Login(username string, password string) (*http.Client, error) {
-	auth, err := doLogin(username, password)
+func Login(consumerKey string, consumerSecret string) (*http.Client, error) {
+	_, err := doLogin(consumerKey, consumerSecret)
 	if err != nil {
 		return nil, err
 	}
 	client := &http.Client{
 		Timeout: time.Duration(30 * time.Second),
-		Jar:     auth.Jar,
+		//Jar:     auth.Jar,
 	}
 	return client, nil
 }
+*/
