@@ -44,6 +44,15 @@ type albumResponse struct {
 	Message string
 }
 
+type albumsResponse struct {
+	Response struct {
+		responseCommon
+		Album []*Album
+	}
+	Code    int
+	Message string
+}
+
 func (a Album) String() string {
 	return fmt.Sprintf(
 		"Album %s (%s, %s, %d images, updated %s): %s",
@@ -57,4 +66,12 @@ func GetAlbum(c *http.Client, id string) (*Album, error) {
 	url := fmt.Sprintf("https://api.smugmug.com/api/v2/album/%s", id)
 	err := GetUnmarshalJSON(c, url, &resp)
 	return &resp.Response.Album, err
+}
+
+// GetAlbumsForUser returns the albums owned by the user
+func GetAlbumsForUser(c *http.Client, nickname string) ([]*Album, error) {
+	resp := albumsResponse{}
+	url := fmt.Sprintf("https://api.smugmug.com/api/v2/user/%s!albums", nickname)
+	err := GetUnmarshalJSON(c, url, &resp)
+	return resp.Response.Album, err
 }
