@@ -31,12 +31,12 @@ func getSmugmugClientOrExit() (c *http.Client) {
 }
 
 func getNixplayClientOrExit() (c *http.Client) {
-	username := viper.GetString("nixplay_username")
+	username := viper.GetString("nixplay.username")
 	if username == "" {
 		fmt.Printf("Must provide a nixplay username")
 		os.Exit(1)
 	}
-	password := viper.GetString("nixplay_password")
+	password := viper.GetString("nixplay.password")
 	if password == "" {
 		fmt.Printf("Must provide a nixplay password")
 		os.Exit(1)
