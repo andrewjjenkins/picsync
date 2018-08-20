@@ -13,9 +13,17 @@ func GetUnmarshalJSON(c *http.Client, url string, target interface{}) error {
 	if err != nil {
 		return err
 	}
+	return UnmarshalJSON(resp, target)
+}
+
+// UnmarshalJSON unmarshalls an HTTP response with json.Unmarshal
+func UnmarshalJSON(
+	resp *http.Response,
+	target interface{},
+) error {
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Server returned %s", resp.Status)
+		return fmt.Errorf("POST %s", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

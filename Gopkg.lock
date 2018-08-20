@@ -69,6 +69,14 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:7e4d5394f3d5d87eff2b1b4d8a8756bbabbe670b28db7cb3c6878d7ace89605f"
   name = "github.com/spf13/afero"
   packages = [
@@ -176,6 +184,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/dghubble/oauth1",
+    "github.com/satori/go.uuid",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "golang.org/x/net/lex/httplex",

@@ -115,6 +115,31 @@ func doSyncSmugmugToNixplay(smugmugAlbumName string, nixplayAlbumName string) er
 		fmt.Printf("DONE\n")
 	}
 
+	// Now, get the photos again and put them in a playlist
+	npPhotos, err = nixplay.GetPhotos(npClient, npAlbum.ID)
+	if err != nil {
+		return err
+	}
+	ssName := fmt.Sprintf("ss_%s", nixplayAlbumName)
+	ss, err := nixplay.GetSlideshowByName(npClient, ssName)
+	if err != nil {
+		fmt.Printf("Could not find slideshow %s (%v), creating\n", ssName, err)
+		fmt.Printf(
+			"If this works, you must then assign the slideshow %s to frames - " +
+				"this program will not do that (but it will update the slideshow once " +
+				"you've assigned it)\n",
+		)
+		ss, err = nixplay.CreateSlideshow(npClient, ssName)
+		if err != nil {
+			return err
+		}
+	}
+	err = nixplay.PublishSlideshow(npClient, ss, npPhotos)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Published photos to slideshow %s\n", ssName)
+
 	return nil
 }
 

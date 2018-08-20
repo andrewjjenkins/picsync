@@ -177,5 +177,8 @@ func doPost(c *http.Client, urlString string, values *url.Values) (*http.Respons
 	}
 	req.Header.Set("X-CSRFToken", csrfToken)
 
+	req.Header.Set("Origin", "https://app.nixplay.com")
+	req.Header.Set("Referer", "https://app.nixplay.com/")
+
 	return c.Do(req)
 }
