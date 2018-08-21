@@ -125,9 +125,10 @@ func doSyncSmugmugToNixplay(smugmugAlbumName string, nixplayAlbumName string) er
 	if err != nil {
 		fmt.Printf("Could not find slideshow %s (%v), creating\n", ssName, err)
 		fmt.Printf(
-			"If this works, you must then assign the slideshow %s to frames - " +
-				"this program will not do that (but it will update the slideshow once " +
+			"If this works, you must then assign the slideshow %s to frames - "+
+				"this program will not do that (but it will update the slideshow once "+
 				"you've assigned it)\n",
+			ssName,
 		)
 		ss, err = nixplay.CreateSlideshow(npClient, ssName)
 		if err != nil {
@@ -138,7 +139,7 @@ func doSyncSmugmugToNixplay(smugmugAlbumName string, nixplayAlbumName string) er
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Published photos to slideshow %s\n", ssName)
+	fmt.Printf("Published %d photos to slideshow %s\n", len(npPhotos), ssName)
 
 	return nil
 }
