@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/andrewjjenkins/nixplay/pkg/smugmug"
+	"github.com/andrewjjenkins/picsync/pkg/smugmug"
 	"github.com/spf13/cobra"
 )
 

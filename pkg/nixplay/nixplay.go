@@ -13,7 +13,7 @@ import (
 
 	"golang.org/x/net/publicsuffix"
 
-	"github.com/andrewjjenkins/nixplay/pkg/util"
+	"github.com/andrewjjenkins/picsync/pkg/util"
 )
 
 type loginError struct {

@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/andrewjjenkins/nixplay/pkg/util"
+	"github.com/andrewjjenkins/picsync/pkg/util"
 	"github.com/satori/go.uuid"
 )
 

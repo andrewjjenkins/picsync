@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/andrewjjenkins/nixplay/pkg/util"
+	"github.com/andrewjjenkins/picsync/pkg/util"
 )
 
 // Photo is a reference to a photo in an album

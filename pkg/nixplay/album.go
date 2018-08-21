@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/andrewjjenkins/nixplay/pkg/util"
+	"github.com/andrewjjenkins/picsync/pkg/util"
 )
 
 // Img is a reference to an image

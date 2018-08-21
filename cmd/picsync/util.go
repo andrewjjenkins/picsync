@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/andrewjjenkins/nixplay/pkg/nixplay"
-	"github.com/andrewjjenkins/nixplay/pkg/smugmug"
+	"github.com/andrewjjenkins/picsync/pkg/nixplay"
+	"github.com/andrewjjenkins/picsync/pkg/smugmug"
 )
 
 func getSmugmugClientOrExit() (c *http.Client) {
