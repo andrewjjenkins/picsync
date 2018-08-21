@@ -14,7 +14,7 @@ import (
 
 var (
 	syncSmugmugToNixplay = &cobra.Command{
-		Use:   "sync-smugmug-to-nixplay <smugmug-album> <nixplay-album>",
+		Use:   "sync <smugmug-album> <nixplay-album>",
 		Short: "Sync a smugmug album to a nixplay album",
 		Run:   runSyncSmugmugToNixplay,
 		Args: func(cmd *cobra.Command, args []string) error {
