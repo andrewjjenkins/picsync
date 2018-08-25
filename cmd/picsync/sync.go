@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/andrewjjenkins/picsync/pkg/nixplay"
 	"github.com/andrewjjenkins/picsync/pkg/smugmug"
@@ -158,6 +159,11 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 			return err
 		}
 		fmt.Printf("DONE\n")
+	}
+
+	if len(work.ToUpload) > 0 {
+		fmt.Printf("Sleeping for 5 seconds to let nixplay digest uploaded photos...\n")
+		time.Sleep(5 * time.Second)
 	}
 
 	// Now, get the photos again and put them in a playlist
