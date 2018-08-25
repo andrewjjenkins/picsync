@@ -9,6 +9,8 @@ import (
 
 	"github.com/andrewjjenkins/picsync/pkg/nixplay"
 	"github.com/andrewjjenkins/picsync/pkg/smugmug"
+
+	"github.com/robfig/cron"
 	"github.com/spf13/cobra"
 )
 
@@ -24,20 +26,59 @@ var (
 			return nil
 		},
 	}
+
+	syncEvery string
 )
 
 func init() {
+	sync.PersistentFlags().StringVarP(
+		&syncEvery,
+		"every",
+		"d",
+		"",
+		"Sync every interval (like \"30s\" or \"1h\")",
+	)
 	rootCmd.AddCommand(sync)
 }
 
 func runSync(cmd *cobra.Command, args []string) {
 	smugmugAlbumName := args[0]
 	nixplayAlbumName := args[1]
+
+	if syncEvery != "" {
+		runSyncEvery(smugmugAlbumName, nixplayAlbumName, syncEvery)
+	} else {
+		runSyncOnce(smugmugAlbumName, nixplayAlbumName)
+	}
+}
+
+func runSyncOnce(smugmugAlbumName string, nixplayAlbumName string) {
 	err := doSync(smugmugAlbumName, nixplayAlbumName)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		os.Exit(1)
 	}
+	os.Exit(0)
+}
+
+func runSyncEvery(
+	smugmugAlbumName string,
+	nixplayAlbumName string,
+	every string,
+) {
+	everyCronSpec := fmt.Sprintf("@every %s", every)
+
+	c := cron.New()
+	err := c.AddFunc(
+		everyCronSpec,
+		func() { doSync(smugmugAlbumName, nixplayAlbumName) },
+	)
+	if err != nil {
+		fmt.Printf("Cannot run every %s: %v\n", every, err)
+		os.Exit(1)
+	}
+	fmt.Printf("Syncing every %s\n", every)
+	c.Run()
 }
 
 func doSync(smugmugAlbumName string, nixplayAlbumName string) error {

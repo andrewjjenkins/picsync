@@ -54,17 +54,16 @@ This will create a Nixplay album and sync all photos from `Smugmug Gallery` to
 Go to https://app.nixplay.com/#/frames/ and click on a frame, then click "Enable
 Playlist" for `ss_Nixplay Album` and it should automatically sync.
 
-Now, you just need to run the syncer periodically (cron or similar):
+You can cause the syncer to run periodically:
 
 ```
-picsync sync "Smugmug Gallery" "Nixplay Album"
+picsync sync --every 60s "Smugmug Gallery" "Nixplay Album"
 ```
 
 Roadmap/Help Wanted
 -------------------
-1. Run as a daemon
-2. Delete pictures from nixplay when they're deleted from smugmug
-3. Docker container or run in some FaaS somewhere (or let Smugmug/Nixplay run
+1. Delete pictures from nixplay when they're deleted from smugmug
+2. Docker container or run in some FaaS somewhere (or let Smugmug/Nixplay run
    it)
 
 License
