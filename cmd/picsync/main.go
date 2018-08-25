@@ -32,11 +32,6 @@ func init() {
 	viper.BindEnv("nixplay_username")
 	viper.BindEnv("smugmug_api_key")
 	viper.BindEnv("smugmug_api_secret")
-
-	smugmugLogin.PersistentFlags().StringVarP(&smugmugLoginOut, "outfile", "o", "", "Write token config out to file (like picsync-config.yaml)")
-
-	rootCmd.AddCommand(smugmugLogin)
-	rootCmd.AddCommand(syncSmugmugToNixplay)
 }
 
 func run(cmd *cobra.Command, args []string) {

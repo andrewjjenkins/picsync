@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	syncSmugmugToNixplay = &cobra.Command{
+	sync = &cobra.Command{
 		Use:   "sync <smugmug-album> <nixplay-album>",
 		Short: "Sync a smugmug album to a nixplay album",
-		Run:   runSyncSmugmugToNixplay,
+		Run:   runSync,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 2 || args[0] == "" || args[1] == "" {
 				return errors.New("Specify the name of the source SmugMug album and destination NixPlay album")
@@ -26,17 +26,21 @@ var (
 	}
 )
 
-func runSyncSmugmugToNixplay(cmd *cobra.Command, args []string) {
+func init() {
+	rootCmd.AddCommand(sync)
+}
+
+func runSync(cmd *cobra.Command, args []string) {
 	smugmugAlbumName := args[0]
 	nixplayAlbumName := args[1]
-	err := doSyncSmugmugToNixplay(smugmugAlbumName, nixplayAlbumName)
+	err := doSync(smugmugAlbumName, nixplayAlbumName)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		os.Exit(1)
 	}
 }
 
-func doSyncSmugmugToNixplay(smugmugAlbumName string, nixplayAlbumName string) error {
+func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 	fmt.Printf(
 		"Syncing images from SmugMug album %s to Nixplay album %s\n",
 		smugmugAlbumName, nixplayAlbumName,

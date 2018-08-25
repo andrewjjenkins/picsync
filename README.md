@@ -44,7 +44,7 @@ Once you have setup, just run it, giving the name of a SmugMug Gallery to
 sync to nixplay:
 
 ```
-picsync sync-smugmug-to-nixplay "Smugmug Gallery" "Nixplay Album"
+picsync sync "Smugmug Gallery" "Nixplay Album"
 ```
 
 This will create a Nixplay album and sync all photos from `Smugmug Gallery` to
@@ -57,7 +57,7 @@ Playlist" for `ss_Nixplay Album` and it should automatically sync.
 Now, you just need to run the syncer periodically (cron or similar):
 
 ```
-picsync sync-smugmug-to-nixplay "Smugmug Gallery" "Nixplay Album"
+picsync sync "Smugmug Gallery" "Nixplay Album"
 ```
 
 Roadmap/Help Wanted

@@ -18,6 +18,18 @@ var (
 	smugmugLoginOut string
 )
 
+func init() {
+	smugmugLogin.PersistentFlags().StringVarP(
+		&smugmugLoginOut,
+		"outfile",
+		"o",
+		"",
+		"Write token config out to file (like picsync-config.yaml)",
+	)
+
+	rootCmd.AddCommand(smugmugLogin)
+}
+
 func runSmugmugLogin(cmd *cobra.Command, args []string) {
 	consumerKey := viper.GetString("smugmug_api_key")
 	if consumerKey == "" {
