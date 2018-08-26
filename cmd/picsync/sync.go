@@ -172,6 +172,7 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 	}
 	ssName := fmt.Sprintf("ss_%s", nixplayAlbumName)
 	ss, err := nixplay.GetSlideshowByName(npClient, ssName)
+	neededCreate := false
 	if err != nil {
 		fmt.Printf("Could not find slideshow %s (%v), creating\n", ssName, err)
 		fmt.Printf(
@@ -180,17 +181,26 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 				"you've assigned it)\n",
 			ssName,
 		)
+		neededCreate = true
 		ss, err = nixplay.CreateSlideshow(npClient, ssName)
 		if err != nil {
 			return err
 		}
 	}
-	err = nixplay.PublishSlideshow(npClient, ss, npPhotos)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Published %d photos to slideshow %s\n", len(npPhotos), ssName)
 
+	if len(work.ToUpload) > 0 || neededCreate {
+		err = nixplay.PublishSlideshow(npClient, ss, npPhotos)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Published %d photos to slideshow %s\n", len(npPhotos), ssName)
+	} else {
+		fmt.Printf(
+			"No changes required for slideshow %s (%d photos)\n",
+			ssName,
+			len(npPhotos),
+		)
+	}
 	return nil
 }
 
