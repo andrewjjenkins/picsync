@@ -68,17 +68,19 @@ func runSyncEvery(
 	every string,
 ) {
 	everyCronSpec := fmt.Sprintf("@every %s", every)
+	job := func() { doSync(smugmugAlbumName, nixplayAlbumName) }
 
 	c := cron.New()
-	err := c.AddFunc(
-		everyCronSpec,
-		func() { doSync(smugmugAlbumName, nixplayAlbumName) },
-	)
+	err := c.AddFunc(everyCronSpec, job)
 	if err != nil {
 		fmt.Printf("Cannot run every %s: %v\n", every, err)
 		os.Exit(1)
 	}
 	fmt.Printf("Syncing every %s\n", every)
+
+	// Run it once first so that we don't sleep at the beginning
+	job()
+
 	c.Run()
 }
 
