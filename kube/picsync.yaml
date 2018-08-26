@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: picsync
+  labels:
+    app: picsync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: picsync
+  template:
+    metadata:
+      labels:
+        app: picsync
+    spec:
+      containers:
+      - name: picsync
+        command: ["/picsync"]
+        args: ["sync", "--every", "60s", "SmugMug Album Name", "Nixplay Album" ]
+        image: quay.io/andrewjjenkins/picsync:master
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/picsync"
+          readOnly: true
+      volumes:
+      - name: config
+        secret:
+          secretName: picsync-config
+          items:
+          - key: picsync-config.yaml
+            path: picsync-config.yaml

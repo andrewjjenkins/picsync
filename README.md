@@ -66,6 +66,17 @@ You can cause the syncer to run periodically:
 picsync sync --every 60s "Smugmug Gallery" "Nixplay Album"
 ```
 
+Kubernetes
+----------
+
+You can run this in Kubernetes.  Easiest way is to run the authentication part
+locally, and then put the auth into a secret:
+
+```
+kubectl create secret generic picsync-config --from-file=../picsync-config.yaml
+kubectl apply -f kube/picsync.yaml
+```
+
 Roadmap/Help Wanted
 -------------------
 1. Delete pictures from nixplay when they're deleted from smugmug
