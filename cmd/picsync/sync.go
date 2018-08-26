@@ -155,8 +155,7 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 		fmt.Printf("Uploading %s to Nixplay...", up.FileName)
 		err := uploadSmugmugToNixplay(up, npAlbum.ID, smClient, npClient)
 		if err != nil {
-			fmt.Printf("\n")
-			return err
+			fmt.Printf("Error uploading photo %s (skipping): %v\n", up.FileName, err)
 		}
 		fmt.Printf("DONE\n")
 	}
