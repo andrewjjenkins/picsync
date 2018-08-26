@@ -1,6 +1,12 @@
 Picsync
 =======
 
+[![Docker Repository on
+Quay](https://quay.io/repository/andrewjjenkins/picsync/status "Docker
+Repository on Quay")](https://quay.io/repository/andrewjjenkins/picsync)
+[![Go Report Card](https://goreportcard.com/badge/github.com/andrewjjenkins/picsync)](https://goreportcard.com/report/github.com/andrewjjenkins/picsync)
+
+
 This syncs pictures from a SmugMug album to a Nixplay Seed wifi-enabled picture
 frame.
 
