@@ -118,7 +118,10 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Found SmugMug images: %v\n", smImages)
+	fmt.Printf("Found %d SmugMug images:\n", len(smImages))
+	for _, img := range smImages {
+		fmt.Printf("  %v\n", img)
+	}
 
 	// Get the nixplay image metadata for the requested album
 	npAlbums, err := nixplay.GetAlbums(npClient)
