@@ -82,8 +82,6 @@ kubectl apply -f kube/picsync.yaml
 Roadmap/Help Wanted
 -------------------
 1. Delete pictures from nixplay when they're deleted from smugmug
-2. Docker container or run in some FaaS somewhere (or let Smugmug/Nixplay run
-   it)
 
 License
 -------
