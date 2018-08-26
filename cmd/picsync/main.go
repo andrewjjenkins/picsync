@@ -22,6 +22,7 @@ func init() {
 	viper = viperLib.New()
 	viper.SetConfigName("picsync-config")
 	viper.AddConfigPath(".")
+	viper.AddConfigPath("/etc/picsync/")
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Printf("Error reading config file, skipping config file\n")
