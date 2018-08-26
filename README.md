@@ -10,6 +10,8 @@ Repository on Quay")](https://quay.io/repository/andrewjjenkins/picsync)
 This syncs pictures from a SmugMug album to a Nixplay Seed wifi-enabled picture
 frame.
 
+![Image of syncing](picsync.png)
+
 Setup
 -----
 
