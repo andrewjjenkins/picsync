@@ -11,6 +11,7 @@ RUN pwd && ls -lR pkg/ cmd/
 RUN CGO_ENABLED=0 GOOS=linux go build -a --installsuffix nocgo -o /picsync ./cmd/picsync
 CMD ["/picsync"]
 
-FROM scratch as run
+FROM alpine:3.8 as run
+RUN apk add --no-cache ca-certificates
 COPY --from=build /picsync ./
 CMD ["./picsync"]
