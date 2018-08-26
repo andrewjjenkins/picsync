@@ -17,7 +17,7 @@ spec:
       containers:
       - name: picsync
         command: ["/picsync"]
-        args: ["sync", "--every", "60s", "SmugMug Album Name", "Nixplay Album" ]
+        args: ["sync", "--every", "5m", "SmugMug Album Name", "Nixplay Album" ]
         image: quay.io/andrewjjenkins/picsync:master
         imagePullPolicy: Always
         volumeMounts:
