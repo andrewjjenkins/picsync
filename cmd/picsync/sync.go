@@ -29,6 +29,7 @@ var (
 	}
 
 	syncEvery string
+	maxPics   int
 )
 
 func init() {
@@ -39,6 +40,14 @@ func init() {
 		"",
 		"Sync every interval (like \"30s\" or \"1h\")",
 	)
+	sync.PersistentFlags().IntVarP(
+		&maxPics,
+		"max",
+		"n",
+		100,
+		"Maximum pictures to sync",
+	)
+
 	rootCmd.AddCommand(sync)
 }
 
@@ -116,7 +125,7 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 		return fmt.Errorf("Could not find SmugMug album %s", smugmugAlbumName)
 	}
 
-	smImages, err := smugmug.GetAlbumImages(smClient, smAlbum.AlbumKey)
+	smImages, err := smugmug.GetAlbumImages(smClient, smAlbum.AlbumKey, maxPics)
 	if err != nil {
 		return err
 	}
