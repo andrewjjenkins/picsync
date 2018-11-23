@@ -64,9 +64,9 @@ func (i AlbumImage) String() string {
 }
 
 // GetAlbumImages will get the metadata for all images in an album
-func GetAlbumImages(c *http.Client, albumKey string) ([]*AlbumImage, error) {
+func GetAlbumImages(c *http.Client, albumKey string, maxPics int) ([]*AlbumImage, error) {
 	resp := albumImagesResponse{}
-	url := fmt.Sprintf("https://api.smugmug.com/api/v2/album/%s!images", albumKey)
+	url := fmt.Sprintf("https://api.smugmug.com/api/v2/album/%s!images?count=%d", albumKey, maxPics)
 	err := GetUnmarshalJSON(c, url, &resp)
 	return resp.Response.AlbumImage, err
 }
