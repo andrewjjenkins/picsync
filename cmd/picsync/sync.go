@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,55 +11,7 @@ import (
 	"github.com/andrewjjenkins/picsync/pkg/smugmug"
 
 	"github.com/robfig/cron"
-	"github.com/spf13/cobra"
 )
-
-var (
-	sync = &cobra.Command{
-		Use:   "sync <smugmug-album> <nixplay-album>",
-		Short: "Sync a smugmug album to a nixplay album",
-		Run:   runSync,
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 2 || args[0] == "" || args[1] == "" {
-				return errors.New("Specify the name of the source SmugMug album and destination NixPlay album")
-			}
-			return nil
-		},
-	}
-
-	syncEvery string
-	maxPics   int
-)
-
-func init() {
-	sync.PersistentFlags().StringVarP(
-		&syncEvery,
-		"every",
-		"d",
-		"",
-		"Sync every interval (like \"30s\" or \"1h\")",
-	)
-	sync.PersistentFlags().IntVarP(
-		&maxPics,
-		"max",
-		"n",
-		100,
-		"Maximum pictures to sync",
-	)
-
-	rootCmd.AddCommand(sync)
-}
-
-func runSync(cmd *cobra.Command, args []string) {
-	smugmugAlbumName := args[0]
-	nixplayAlbumName := args[1]
-
-	if syncEvery != "" {
-		runSyncEvery(smugmugAlbumName, nixplayAlbumName, syncEvery)
-	} else {
-		runSyncOnce(smugmugAlbumName, nixplayAlbumName)
-	}
-}
 
 func runSyncOnce(smugmugAlbumName string, nixplayAlbumName string) {
 	err := doSync(smugmugAlbumName, nixplayAlbumName)

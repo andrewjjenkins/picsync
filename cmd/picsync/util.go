@@ -10,14 +10,18 @@ import (
 )
 
 func getSmugmugClientOrExit() (c *http.Client) {
-	auth := smugmug.AccessAuth{
-		Token:          viper.GetString("smugmug.access.token"),
-		Secret:         viper.GetString("smugmug.access.secret"),
-		ConsumerKey:    viper.GetString("smugmug.consumer.token"),
-		ConsumerSecret: viper.GetString("smugmug.consumer.secret"),
+	auth := smugmug.SmugmugAuth{
+		Access: smugmug.AccessAuth{
+			Token:  viper.GetString("smugmug.access.token"),
+			Secret: viper.GetString("smugmug.access.secret"),
+		},
+		Consumer: smugmug.ConsumerAuth{
+			Token:  viper.GetString("smugmug.consumer.token"),
+			Secret: viper.GetString("smugmug.consumer.secret"),
+		},
 	}
-	if auth.Token == "" || auth.Secret == "" ||
-		auth.ConsumerKey == "" || auth.ConsumerSecret == "" {
+	if auth.Access.Token == "" || auth.Access.Secret == "" ||
+		auth.Consumer.Token == "" || auth.Consumer.Secret == "" {
 		fmt.Printf("No smugmug auth; do \"picsync login -o picsync-config.yaml\"\n")
 		os.Exit(1)
 	}

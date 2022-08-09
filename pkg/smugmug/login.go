@@ -13,12 +13,20 @@ const (
 	authorizeURL    = "https://secure.smugmug.com/services/oauth/1.0a/authorize"
 )
 
-// AccessAuth is the OAuth info required to get a new session token
+// SmugmugAuth is the OAuth info required to get a new session token
+type SmugmugAuth struct {
+	Access   AccessAuth   `json:"access,omitempty"`
+	Consumer ConsumerAuth `json:"consumer,omitempty"`
+}
+
 type AccessAuth struct {
-	Token          string
-	Secret         string
-	ConsumerKey    string
-	ConsumerSecret string
+	Token  string `json:"token"`
+	Secret string `json:"secret"`
+}
+
+type ConsumerAuth struct {
+	Token  string `json:"token"`
+	Secret string `json:"secret"`
 }
 
 func newOauthConfig(consumerKey string, consumerSecret string) *oauth1.Config {
@@ -55,10 +63,13 @@ func Login(consumerKey string, consumerSecret string) (*AccessAuth, error) {
 		return nil, err
 	}
 	if entries != 1 {
-		return nil, fmt.Errorf("Did not read a verifier (%d)", entries)
+		return nil, fmt.Errorf("did not read a verifier (%d)", entries)
 	}
 
 	accessToken, accessSecret, err := config.AccessToken(reqToken, reqSecret, verifier)
+	if err != nil {
+		return nil, err
+	}
 
 	return &AccessAuth{
 		Token:  accessToken,
@@ -67,9 +78,9 @@ func Login(consumerKey string, consumerSecret string) (*AccessAuth, error) {
 }
 
 // Access returns a client that will use the access auth info to sign requests
-func Access(access *AccessAuth) (*http.Client, error) {
-	config := newOauthConfig(access.ConsumerKey, access.ConsumerSecret)
-	token := oauth1.NewToken(access.Token, access.Secret)
+func Access(auth *SmugmugAuth) (*http.Client, error) {
+	config := newOauthConfig(auth.Consumer.Token, auth.Consumer.Secret)
+	token := oauth1.NewToken(auth.Access.Token, auth.Access.Secret)
 	client := config.Client(oauth1.NoContext, token)
 	req, err := http.NewRequest("GET", "https://api.smugmug.com/api/v2!authuser", nil)
 	if err != nil {
