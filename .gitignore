@@ -1,2 +1,4 @@
 vendor/
 picsync-config.yaml
+.envrc
+__debug_bin
