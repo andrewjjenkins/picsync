@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/lex/httplex"
+	"golang.org/x/net/http/httpguts"
 )
 
 // From https://golang.org/src/net/http/cookie.go
@@ -306,5 +306,5 @@ func isCookieNameValid(raw string) bool {
 }
 
 func isNotToken(r rune) bool {
-	return !httplex.IsTokenRune(r)
+	return !httpguts.IsTokenRune(r)
 }

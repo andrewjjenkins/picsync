@@ -20,9 +20,5 @@ require (
 	github.com/spf13/jwalterweatherman v0.0.0-20180109140146-7c0cea34c8ec // indirect
 	github.com/spf13/pflag v1.0.1 // indirect
 	github.com/spf13/viper v1.0.2
-	github.com/stretchr/testify v1.6.1 // indirect
-	golang.org/x/net v0.0.0-20180124060956-0ed95abb35c4
-	golang.org/x/sys v0.0.0-20180801221139-3dc4335d56c7 // indirect
-	golang.org/x/text v0.3.0 // indirect
-	gopkg.in/yaml.v2 v2.2.1 // indirect
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e
 )
