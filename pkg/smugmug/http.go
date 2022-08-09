@@ -38,7 +38,7 @@ func GetUnmarshalJSON(c *http.Client, url string, target interface{}) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Server returned %s", resp.Status)
+		return fmt.Errorf("server returned %s", resp.Status)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

@@ -57,7 +57,7 @@ func GetUser(c *http.Client, nickname string) (*User, error) {
 // GetThisUser gets the user that you are authenticated as
 func GetThisUser(c *http.Client) (*User, error) {
 	resp := userResponse{}
-	url := fmt.Sprintf("https://api.smugmug.com/api/v2!authuser")
+	url := "https://api.smugmug.com/api/v2!authuser"
 	err := GetUnmarshalJSON(c, url, &resp)
 	return &resp.Response.User, err
 }
