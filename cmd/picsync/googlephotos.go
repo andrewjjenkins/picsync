@@ -93,11 +93,11 @@ func newGooglePhotosClient() (*http.Client, error) {
 
 	consumerKey := viper.GetString("googlephotos_api_key")
 	if consumerKey == "" {
-		return nil, fmt.Errorf("Must provide a Google Photos API key")
+		return nil, fmt.Errorf("must provide a Google Photos API key")
 	}
 	consumerSecret := viper.GetString("googlephotos_api_secret")
 	if consumerSecret == "" {
-		return nil, fmt.Errorf("Must provide a Google Photos API secret")
+		return nil, fmt.Errorf("must provide a Google Photos API secret")
 	}
 
 	access := oauth2.Token{

@@ -67,13 +67,13 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 	for _, a := range smAlbums {
 		if a.Name == smugmugAlbumName {
 			if smAlbum != nil {
-				return fmt.Errorf("Duplicate SmugMug albums named %s", smugmugAlbumName)
+				return fmt.Errorf("duplicate SmugMug albums named %s", smugmugAlbumName)
 			}
 			smAlbum = a
 		}
 	}
 	if smAlbum == nil {
-		return fmt.Errorf("Could not find SmugMug album %s", smugmugAlbumName)
+		return fmt.Errorf("could not find SmugMug album %s", smugmugAlbumName)
 	}
 
 	smImages, err := smugmug.GetAlbumImages(smClient, smAlbum.AlbumKey, maxPics)
@@ -94,13 +94,13 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 	for _, a := range npAlbums {
 		if a.Title == nixplayAlbumName {
 			if npAlbum != nil {
-				return fmt.Errorf("Duplicate Nixplay albums named %s", nixplayAlbumName)
+				return fmt.Errorf("duplicate Nixplay albums named %s", nixplayAlbumName)
 			}
 			npAlbum = a
 		}
 	}
 	if npAlbum == nil {
-		return fmt.Errorf("Could not find Nixplay album %s", nixplayAlbumName)
+		return fmt.Errorf("could not find Nixplay album %s", nixplayAlbumName)
 	}
 	npPhotos, err := nixplay.GetPhotos(npClient, npAlbum.ID)
 	if err != nil {
@@ -238,6 +238,9 @@ func uploadSmugmugToNixplay(from *smugmug.AlbumImage, toAlbum int, smClient *htt
 	filetype := imgResp.Header.Get("content-type")
 	filesizeStr := imgResp.Header.Get("content-length")
 	filesize, err := strconv.ParseUint(filesizeStr, 10, 64)
+	if err != nil {
+		return err
+	}
 
 	return nixplay.UploadPhoto(npClient, toAlbum, filename, filetype, filesize, imgResp.Body)
 }
