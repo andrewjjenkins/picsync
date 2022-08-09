@@ -97,18 +97,3 @@ func Access(auth *SmugmugAuth) (*http.Client, error) {
 	}
 	return client, nil
 }
-
-/*
-// Login logs in to SmugMug
-func Login(consumerKey string, consumerSecret string) (*http.Client, error) {
-	_, err := doLogin(consumerKey, consumerSecret)
-	if err != nil {
-		return nil, err
-	}
-	client := &http.Client{
-		Timeout: time.Duration(30 * time.Second),
-		//Jar:     auth.Jar,
-	}
-	return client, nil
-}
-*/
