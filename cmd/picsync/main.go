@@ -16,6 +16,8 @@ var (
 	}
 
 	viper *viperLib.Viper
+
+	loginOut string
 )
 
 func init() {
@@ -33,6 +35,8 @@ func init() {
 	viper.BindEnv("nixplay_username")
 	viper.BindEnv("smugmug_api_key")
 	viper.BindEnv("smugmug_api_secret")
+	viper.BindEnv("googlephotos_api_key")
+	viper.BindEnv("googlephotos_api_secret")
 }
 
 func run(cmd *cobra.Command, args []string) {

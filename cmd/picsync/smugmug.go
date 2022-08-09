@@ -34,14 +34,13 @@ var (
 		},
 	}
 
-	smugmugLoginOut string
-	syncEvery       string
-	maxPics         int
+	syncEvery string
+	maxPics   int
 )
 
 func init() {
 	smugmugLogin.PersistentFlags().StringVarP(
-		&smugmugLoginOut,
+		&loginOut,
 		"outfile",
 		"o",
 		"",
@@ -111,22 +110,8 @@ func runSmugmugLogin(cmd *cobra.Command, args []string) {
 		auth.Consumer.Token,
 		auth.Consumer.Secret,
 	)
+	writeLoginOut(toWrite)
 
-	var outfile *os.File
-	if smugmugLoginOut == "-" || smugmugLoginOut == "" {
-		outfile = os.Stdout
-	} else {
-		outfile, err = os.Create(smugmugLoginOut)
-		if err != nil {
-			panic(err)
-		}
-		defer outfile.Close()
-	}
-	_, err = outfile.WriteString(toWrite)
-	if err != nil {
-		fmt.Printf("Error writing login info to %s: %v\n", smugmugLoginOut, err)
-	}
-	outfile.Sync()
 }
 
 func runSmugmugSync(cmd *cobra.Command, args []string) {
