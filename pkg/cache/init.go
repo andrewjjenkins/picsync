@@ -14,7 +14,8 @@ create table googlephotos (
 	BaseUrl TEXT,
 	Sha256 TEXT,
 	Md5 TEXT,
-	LastUpdated TEXT
+	LastUpdated INTEGER,
+	LastUsed INTEGER
 );
 drop table if exists nixplay;
 create table nixplay (
@@ -23,7 +24,8 @@ create table nixplay (
 	S3Filename TEXT,
 	Url TEXT,
 	Md5 TEXT,
-	LastUpdated TEXT
+	LastUpdated INTEGER,
+	LastUsed INTEGER
 );
 `
 
@@ -60,16 +62,4 @@ func Init(db *sql.DB) error {
 		return err
 	}
 	return nil
-}
-
-type StatusResponse struct {
-	GooglePhotosValidRows   int64
-	GooglePhotosExpiredRows int64
-	NixplayValidRows        int64
-	NixplayExpiredRows      int64
-}
-
-func Status(db *sql.DB) (StatusResponse, error) {
-	resp := StatusResponse{}
-	return resp, nil
 }

@@ -25,7 +25,6 @@ func GetUnmarshalJSON(c *http.Client, url string, target interface{}) error {
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Printf("Body: %s\n", body)
 	if err != nil {
 		return err
 	}
@@ -53,7 +52,6 @@ func PostUnmarshalJSON(c *http.Client, url string, reqBody string, target interf
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Printf("Body: %s\n", body)
 	if err != nil {
 		return err
 	}

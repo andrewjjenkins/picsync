@@ -40,6 +40,6 @@ func ListMediaItemsForAlbumId(c *http.Client, albumId string) ([]*MediaItem, err
 	resp := searchMediaItemsResponse{}
 	url := "https://photoslibrary.googleapis.com/v1/mediaItems:search"
 	body := fmt.Sprintf("{\"albumId\":\"%s\"}", albumId)
-	err := PostUnmarshalJSON(c, url, body, resp)
+	err := PostUnmarshalJSON(c, url, body, &resp)
 	return resp.MediaItems, err
 }

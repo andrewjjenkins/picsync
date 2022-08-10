@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/andrewjjenkins/picsync/pkg/cache"
 	"github.com/andrewjjenkins/picsync/pkg/googlephotos"
 	"github.com/spf13/cobra"
 	"golang.org/x/oauth2"
@@ -42,6 +43,13 @@ func init() {
 	)
 
 	googlephotosCmd.AddCommand(googlephotosLogin)
+
+	googlephotosList.PersistentFlags().BoolVar(
+		&updateCache,
+		"update-cache",
+		false,
+		"Also update the cache when listing (temporarily downloads each image)",
+	)
 
 	googlephotosCmd.AddCommand(googlephotosList)
 
@@ -141,18 +149,46 @@ func runGooglephotosList(cmd *cobra.Command, args []string) {
 
 	if len(args) == 1 {
 		albumId := args[0]
-		items, err := googlephotos.ListMediaItemsForAlbumId(c, albumId)
-		if err != nil {
-			panic(err)
+		if !updateCache {
+			items, err := googlephotos.ListMediaItemsForAlbumId(c, albumId)
+			if err != nil {
+				panic(err)
+			}
+			for _, item := range items {
+				fmt.Printf("Media Item \"%s\":\n", item.Filename)
+				fmt.Printf("  ID: %s\n", item.Id)
+				fmt.Printf("  Description: %s\n", item.Description)
+				fmt.Printf("  Google Photos: %s\n", item.ProductUrl)
+				fmt.Printf("  Raw: %s\n", item.BaseUrl)
+			}
+			return
 		}
-		for _, item := range items {
-			fmt.Printf("Media Item \"%s\":\n", item.Filename)
-			fmt.Printf("  ID: %s\n", item.Id)
-			fmt.Printf("  Description: %s\n", item.Description)
-			fmt.Printf("  Google Photos: %s\n", item.ProductUrl)
-			fmt.Printf("  Raw: %s\n", item.BaseUrl)
-		}
+		runGooglephotosListUpdateCache(c, albumId)
 		return
 	}
 	panic("Unexpected number of args")
+}
+
+func runGooglephotosListUpdateCache(client *http.Client, albumId string) {
+	var updatedCount int64
+	updateCallback := func(cached *googlephotos.CachedMediaItem) {
+		updatedCount++
+		fmt.Printf("Updated %d:\n", updatedCount)
+		fmt.Printf("  ID: %s\n", cached.MediaItem.Id)
+		fmt.Printf("  Description: %s\n", cached.MediaItem.Description)
+		fmt.Printf("  Google Photos: %s\n", cached.MediaItem.ProductUrl)
+		fmt.Printf("  Raw: %s\n", cached.MediaItem.BaseUrl)
+		fmt.Printf("  Cache ID/Md5/Sha256: %d/%s/%s\n",
+			cached.CacheId, cached.Md5, cached.Sha256)
+	}
+
+	c, err := cache.New()
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = googlephotos.UpdateCacheForAlbumId(client, c, albumId, updateCallback)
+	if err != nil {
+		panic(err)
+	}
 }

@@ -17,7 +17,8 @@ var (
 
 	viper *viperLib.Viper
 
-	loginOut string
+	loginOut    string
+	updateCache bool
 )
 
 func init() {
