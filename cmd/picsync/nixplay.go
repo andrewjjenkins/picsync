@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/andrewjjenkins/picsync/pkg/cache"
 	"github.com/andrewjjenkins/picsync/pkg/nixplay"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +23,13 @@ var (
 )
 
 func init() {
+	nixplayListCmd.PersistentFlags().BoolVar(
+		&updateCache,
+		"update-cache",
+		false,
+		"Also update the cache when listing (temporarily downloads each image)",
+	)
+
 	nixplayCmd.AddCommand(nixplayListCmd)
 	rootCmd.AddCommand(nixplayCmd)
 }
@@ -62,6 +71,15 @@ func runNixplayListAlbum(albumName string) {
 	if err != nil {
 		panic(err)
 	}
+
+	var c cache.Cache
+	if updateCache {
+		c, err = cache.New()
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	fmt.Printf("Photos for album %s (%d)\n", npAlbum.Title, npAlbum.ID)
 	for i, p := range npPhotos {
 		fmt.Printf("Nixplay Photo %d:\n", i)
@@ -69,5 +87,20 @@ func runNixplayListAlbum(albumName string) {
 		fmt.Printf("  Date: %s\n", p.SortDate)
 		fmt.Printf("  URL: %s\n", p.URL)
 		fmt.Printf("  MD5: %s\n", p.Md5)
+		if updateCache {
+			timeNow := time.Now()
+			err := c.UpsertNixplay(&cache.NixplayData{
+				NixplayId:   p.ID,
+				URL:         p.URL,
+				Filename:    p.Filename,
+				SortDate:    p.SortDate,
+				Md5:         p.Md5,
+				LastUpdated: timeNow,
+				LastUsed:    timeNow,
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
 	}
 }

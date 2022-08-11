@@ -20,10 +20,11 @@ create table googlephotos (
 drop table if exists nixplay;
 create table nixplay (
 	Id INTEGER PRIMARY KEY,
-	Filename TEXT,
-	S3Filename TEXT,
 	Url TEXT,
+	Filename TEXT,
+	SortDate TEXT,
 	Md5 TEXT,
+	NixplayId INTEGER,
 	LastUpdated INTEGER,
 	LastUsed INTEGER
 );

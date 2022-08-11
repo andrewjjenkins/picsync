@@ -16,9 +16,21 @@ type GooglephotoData struct {
 	LastUsed    time.Time
 }
 
+type NixplayData struct {
+	Id          int64
+	URL         string
+	Filename    string
+	SortDate    string
+	Md5         string
+	NixplayId   int
+	LastUpdated time.Time
+	LastUsed    time.Time
+}
+
 type Cache interface {
 	UpsertGooglephoto(p *GooglephotoData) error
 	GetGooglephoto(baseUrl string) (*GooglephotoData, error)
+	UpsertNixplay(n *NixplayData) error
 
 	Status() (StatusResponse, error)
 }
@@ -52,7 +64,7 @@ func (c *cacheImpl) UpsertGooglephoto(p *GooglephotoData) error {
 	if p.Id == 0 {
 		// Caller doesn't know an Id.  Maybe it's new, but let's try to find
 		// it by BaseUrl first.
-		rows, err := c.db.Query("SELECT Id FROM googlephotos WHERE BaseUrl=?",
+		rows, err := c.db.Query("SELECT Id FROM googlephotos WHERE BaseUrl=?;",
 			p.BaseUrl)
 		if err != nil {
 			return err
@@ -60,10 +72,10 @@ func (c *cacheImpl) UpsertGooglephoto(p *GooglephotoData) error {
 		if rows.Next() {
 			// This is an update.  Store the row Id we just found.
 			err = rows.Scan(&p.Id)
+			rows.Close()
 			if err != nil {
 				return err
 			}
-			rows.Close()
 			return c.updateGooglephoto(p)
 		}
 		rows.Close()
@@ -131,6 +143,88 @@ func (c *cacheImpl) GetGooglephoto(baseUrl string) (*GooglephotoData, error) {
 	rows.Scan(&toRet.Id, &toRet.BaseUrl, &toRet.Sha256, &toRet.Md5,
 		&toRet.LastUpdated, &toRet.LastUsed)
 	return &toRet, nil
+}
+
+func (c *cacheImpl) UpsertNixplay(n *NixplayData) error {
+	if n.Md5 == "" || n.NixplayId == 0 || n.Filename == "" ||
+		n.URL == "" || n.SortDate == "" {
+		return errors.New("must provide Md5, NixplayID, Filename, URL, SortDate")
+	}
+	if n.LastUpdated.IsZero() {
+		n.LastUpdated = time.Now()
+	}
+	n.LastUsed = time.Now()
+
+	if n.Id == 0 {
+		// Caller doesn't know an Id.  Maybe it's new, but let's try to find
+		// it by md5 first.
+		// This assumes that there will be no md5 collisions.  It's unlikely
+		// any one user's photo collection will have some, and I don't know
+		// enough about what is persistent/unique in Nixplay's API to choose
+		// something like Google's baseUrl.
+		// We could use Sha256 someday if we implemented something like the
+		// way we download all the images for googlephotos.
+		rows, err := c.db.Query("SELECT Id FROM nixplay WHERE Md5=?;", n.Md5)
+		if err != nil {
+			return err
+		}
+		if rows.Next() {
+			// This is an update.  Store the row ID we just found.
+			err = rows.Scan(&n.Id)
+			rows.Close()
+			if err != nil {
+				return err
+			}
+			return c.updateNixplay(n)
+		}
+		rows.Close()
+		// This is an insert.
+		return c.insertNixplay(n)
+	}
+	return c.updateNixplay(n)
+}
+
+func (c *cacheImpl) updateNixplay(n *NixplayData) error {
+	res, err := c.db.Exec("UPDATE nixplay "+
+		"SET NixplayId=?, Filename=?, URL=?, SortDate=?, LastUsed=?, LastUpdated=? "+
+		"WHERE Id=? AND Md5=? ;",
+		n.NixplayId, n.Filename, n.URL, n.SortDate, n.LastUsed,
+		n.LastUpdated, n.Id, n.Md5)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return fmt.Errorf("expected 1 row updated, got %d", rows)
+	}
+	return nil
+}
+
+func (c *cacheImpl) insertNixplay(n *NixplayData) error {
+	res, err := c.db.Exec("INSERT INTO nixplay "+
+		"(NixplayId, Filename, URL, SortDate, Md5, LastUpdated, LastUsed)"+
+		"VALUES(?,?,?,?,?,?,?);",
+		n.NixplayId, n.Filename, n.URL, n.SortDate, n.Md5,
+		n.LastUpdated, n.LastUsed)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return fmt.Errorf("expected 1 row updated, got %d", rows)
+	}
+	rowId, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	n.Id = rowId
+	return nil
 }
 
 type StatusResponse struct {
