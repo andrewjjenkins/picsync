@@ -30,7 +30,9 @@ func runNixplayList(cmd *cobra.Command, args []string) {
 		panic(fmt.Errorf("only one argument allowed (album name)"))
 	}
 	if len(args) == 1 {
-		panic(fmt.Errorf("not implemented"))
+		albumName := args[0]
+		runNixplayListAlbum(albumName)
+		return
 	}
 	runNixplayListAlbums()
 }
@@ -46,5 +48,26 @@ func runNixplayListAlbums() {
 		fmt.Printf("Nixplay album %s:\n", a.Title)
 		fmt.Printf("  Photos: %d\n", a.PhotoCount)
 		fmt.Printf("  Published: %t\n", a.Published)
+	}
+}
+
+func runNixplayListAlbum(albumName string) {
+	npClient := getNixplayClientOrExit()
+
+	npAlbum, err := nixplay.GetAlbumByName(npClient, albumName)
+	if err != nil {
+		panic(err)
+	}
+	npPhotos, err := nixplay.GetPhotos(npClient, npAlbum.ID)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Photos for album %s (%d)\n", npAlbum.Title, npAlbum.ID)
+	for i, p := range npPhotos {
+		fmt.Printf("Nixplay Photo %d:\n", i)
+		fmt.Printf("  Filename: %s\n", p.Filename)
+		fmt.Printf("  Date: %s\n", p.SortDate)
+		fmt.Printf("  URL: %s\n", p.URL)
+		fmt.Printf("  MD5: %s\n", p.Md5)
 	}
 }

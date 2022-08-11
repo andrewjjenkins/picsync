@@ -47,3 +47,23 @@ func GetAlbums(c *http.Client) ([]*Album, error) {
 	err := util.GetUnmarshalJSON(c, "https://api.nixplay.com/albums/web/json/", &albums)
 	return albums, err
 }
+
+func GetAlbumByName(c *http.Client, albumName string) (*Album, error) {
+	npAlbums, err := GetAlbums(c)
+	if err != nil {
+		return nil, err
+	}
+	var npAlbum *Album
+	for _, a := range npAlbums {
+		if a.Title == albumName {
+			if npAlbum != nil {
+				return nil, fmt.Errorf("duplicate Nixplay albums named %s", albumName)
+			}
+			npAlbum = a
+		}
+	}
+	if npAlbum == nil {
+		return nil, fmt.Errorf("could not find Nixplay album %s", albumName)
+	}
+	return npAlbum, nil
+}

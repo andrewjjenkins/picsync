@@ -86,21 +86,9 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 	}
 
 	// Get the nixplay image metadata for the requested album
-	npAlbums, err := nixplay.GetAlbums(npClient)
+	npAlbum, err := nixplay.GetAlbumByName(npClient, nixplayAlbumName)
 	if err != nil {
 		return err
-	}
-	var npAlbum *nixplay.Album
-	for _, a := range npAlbums {
-		if a.Title == nixplayAlbumName {
-			if npAlbum != nil {
-				return fmt.Errorf("duplicate Nixplay albums named %s", nixplayAlbumName)
-			}
-			npAlbum = a
-		}
-	}
-	if npAlbum == nil {
-		return fmt.Errorf("could not find Nixplay album %s", nixplayAlbumName)
 	}
 	npPhotos, err := nixplay.GetPhotos(npClient, npAlbum.ID)
 	if err != nil {
