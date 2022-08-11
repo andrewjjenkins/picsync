@@ -13,8 +13,8 @@ import (
 	"github.com/robfig/cron"
 )
 
-func runSyncOnce(smugmugAlbumName string, nixplayAlbumName string) {
-	err := doSync(smugmugAlbumName, nixplayAlbumName)
+func runSyncSmugmugOnce(smugmugAlbumName string, nixplayAlbumName string) {
+	err := doSyncSmugmug(smugmugAlbumName, nixplayAlbumName)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		os.Exit(1)
@@ -22,13 +22,13 @@ func runSyncOnce(smugmugAlbumName string, nixplayAlbumName string) {
 	os.Exit(0)
 }
 
-func runSyncEvery(
+func runSyncSmugmugEvery(
 	smugmugAlbumName string,
 	nixplayAlbumName string,
 	every string,
 ) {
 	everyCronSpec := fmt.Sprintf("@every %s", every)
-	job := func() { doSync(smugmugAlbumName, nixplayAlbumName) }
+	job := func() { doSyncSmugmug(smugmugAlbumName, nixplayAlbumName) }
 
 	c := cron.New()
 	err := c.AddFunc(everyCronSpec, job)
@@ -44,7 +44,7 @@ func runSyncEvery(
 	c.Run()
 }
 
-func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
+func doSyncSmugmug(smugmugAlbumName string, nixplayAlbumName string) error {
 	fmt.Printf(
 		"Syncing images from SmugMug album %s to Nixplay album %s\n",
 		smugmugAlbumName, nixplayAlbumName,
@@ -95,7 +95,7 @@ func doSync(smugmugAlbumName string, nixplayAlbumName string) error {
 		return err
 	}
 
-	work, err := calcSyncWork(smImages, npPhotos)
+	work, err := calcSyncSmugmugWork(smImages, npPhotos)
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ type syncWork struct {
 type smugmugAlbumImagesByMd5 map[string]*smugmug.AlbumImage
 type nixplayAlbumImagesByMd5 map[string]*nixplay.Photo
 
-func calcSyncWork(smImages []*smugmug.AlbumImage, npPhotos []*nixplay.Photo) (*syncWork, error) {
+func calcSyncSmugmugWork(smImages []*smugmug.AlbumImage, npPhotos []*nixplay.Photo) (*syncWork, error) {
 	work := syncWork{}
 
 	// Store a lookup-by-MD5 for SmugMug

@@ -119,8 +119,8 @@ func runSmugmugSync(cmd *cobra.Command, args []string) {
 	nixplayAlbumName := args[1]
 
 	if syncEvery != "" {
-		runSyncEvery(smugmugAlbumName, nixplayAlbumName, syncEvery)
+		runSyncSmugmugEvery(smugmugAlbumName, nixplayAlbumName, syncEvery)
 	} else {
-		runSyncOnce(smugmugAlbumName, nixplayAlbumName)
+		runSyncSmugmugOnce(smugmugAlbumName, nixplayAlbumName)
 	}
 }
