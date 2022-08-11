@@ -113,8 +113,6 @@ func newGooglePhotosClient() (*http.Client, error) {
 			return nil, err
 		}
 	}
-	fmt.Printf("Access: %v\n", access)
-
 	c := googlephotos.Client(consumerKey, consumerSecret, context.Background(), &access)
 	return c, nil
 }
