@@ -18,6 +18,7 @@ type GooglephotoData struct {
 
 type Cache interface {
 	UpsertGooglephoto(p *GooglephotoData) error
+	GetGooglephoto(baseUrl string) (*GooglephotoData, error)
 
 	Status() (StatusResponse, error)
 }
@@ -111,6 +112,25 @@ func (c *cacheImpl) insertGooglephoto(p *GooglephotoData) error {
 	}
 	p.Id = rowId
 	return nil
+}
+
+func (c *cacheImpl) GetGooglephoto(baseUrl string) (*GooglephotoData, error) {
+	rows, err := c.db.Query(
+		"SELECT Id, BaseUrl, Sha256, Md5, LastUpdated, LastUsed "+
+			"FROM googlephotos WHERE BaseUrl=? LIMIT 1;",
+		baseUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	found := rows.Next()
+	if !found {
+		return nil, nil
+	}
+	var toRet GooglephotoData
+	rows.Scan(&toRet.Id, &toRet.BaseUrl, &toRet.Sha256, &toRet.Md5,
+		&toRet.LastUpdated, &toRet.LastUsed)
+	return &toRet, nil
 }
 
 type StatusResponse struct {

@@ -42,6 +42,34 @@ func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, c
 		return []*CachedMediaItem{}, err
 	}
 	for _, item := range mediaItems {
+		// First, see if it is already in the cache.  Google never changes
+		// the contents of a baseUrl, so if it is already present we don't
+		// need to download it again.
+		currentEntry, err := c.GetGooglephoto(item.BaseUrl)
+		if err != nil {
+			return []*CachedMediaItem{}, err
+		}
+		if currentEntry != nil {
+			// Update the timestamps and set back to the cache.
+			currentEntry.LastUpdated = time.Now()
+			currentEntry.LastUsed = currentEntry.LastUpdated
+			err = c.UpsertGooglephoto(currentEntry)
+			if err != nil {
+				return []*CachedMediaItem{}, err
+			}
+			cached := CachedMediaItem{
+				CacheId:     currentEntry.Id,
+				Sha256:      currentEntry.Sha256,
+				Md5:         currentEntry.Md5,
+				LastUpdated: currentEntry.LastUpdated,
+				LastUsed:    currentEntry.LastUsed,
+				MediaItem:   item,
+			}
+			cb(&cached)
+			continue
+		}
+
+		// Item not in the cache.  We must download it and calculate hashes.
 		resp, err := http.Get(item.BaseUrl)
 		if err != nil {
 			// FIXME: Maybe we want to skip updating cache for this item if we
