@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/andrewjjenkins/picsync/pkg/cache"
@@ -16,8 +15,7 @@ import (
 var (
 	googlephotosCmd = &cobra.Command{
 		Use:   "googlephotos",
-		Short: "sync pictures from Google Photos to Nixplay",
-		Run:   runGooglephotos,
+		Short: "Interact with Google Photos",
 	}
 
 	googlephotosLogin = &cobra.Command{
@@ -54,12 +52,6 @@ func init() {
 	googlephotosCmd.AddCommand(googlephotosList)
 
 	rootCmd.AddCommand(googlephotosCmd)
-}
-
-func runGooglephotos(cmd *cobra.Command, args []string) {
-	fmt.Println("Choose a Google Photos-related operation like \"picsync googlephotos login\" or \"picsync googlephotos sync\"")
-	fmt.Println("(try --help to see options)")
-	os.Exit(1)
 }
 
 func runGooglephotosLogin(cmd *cobra.Command, args []string) {
