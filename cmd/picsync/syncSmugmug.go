@@ -157,7 +157,7 @@ func doSyncSmugmug(smugmugAlbumName string, nixplayAlbumName string) error {
 	return nil
 }
 
-type syncWork struct {
+type syncSmugmugWork struct {
 	ToUpload []*smugmug.AlbumImage
 	ToDelete []*nixplay.Photo
 }
@@ -165,8 +165,8 @@ type syncWork struct {
 type smugmugAlbumImagesByMd5 map[string]*smugmug.AlbumImage
 type nixplayAlbumImagesByMd5 map[string]*nixplay.Photo
 
-func calcSyncSmugmugWork(smImages []*smugmug.AlbumImage, npPhotos []*nixplay.Photo) (*syncWork, error) {
-	work := syncWork{}
+func calcSyncSmugmugWork(smImages []*smugmug.AlbumImage, npPhotos []*nixplay.Photo) (*syncSmugmugWork, error) {
+	work := syncSmugmugWork{}
 
 	// Store a lookup-by-MD5 for SmugMug
 	sm := make(smugmugAlbumImagesByMd5)

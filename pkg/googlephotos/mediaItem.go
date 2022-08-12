@@ -65,6 +65,7 @@ func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, c
 				LastUsed:    currentEntry.LastUsed,
 				MediaItem:   item,
 			}
+			toRet = append(toRet, &cached)
 			cb(&cached)
 			continue
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/andrewjjenkins/picsync/pkg/cache"
@@ -117,11 +118,17 @@ func newGooglePhotosClient() (*http.Client, error) {
 	return c, nil
 }
 
-func runGooglephotosList(cmd *cobra.Command, args []string) {
+func getGooglephotoClientOrExit() (c *http.Client) {
 	c, err := newGooglePhotosClient()
 	if err != nil {
-		panic(err)
+		fmt.Printf("Google Photos login error: %v", err)
+		os.Exit(1)
 	}
+	return c
+}
+
+func runGooglephotosList(cmd *cobra.Command, args []string) {
+	c := getGooglephotoClientOrExit()
 
 	if len(args) == 0 {
 		albums, err := googlephotos.ListAlbums(c)
