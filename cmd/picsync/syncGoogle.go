@@ -84,12 +84,18 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 		fmt.Fprintf(os.Stdout, "\033[2K\rUpdating source image %d...", sourceCacheUpdateCount)
 	}
 
-	sourceCacheImages, err := googlephotos.UpdateCacheForAlbumId(
-		gpClient, c, sourceAlbumId, "", sourceCacheUpdateCb)
-	if err != nil {
-		return err
+	var nextPageToken string
+	var sourceCacheImages []*googlephotos.CachedMediaItem
+	for ok := true; ok; ok = (nextPageToken != "") {
+		res, err := googlephotos.UpdateCacheForAlbumId(
+			gpClient, c, sourceAlbumId, nextPageToken, sourceCacheUpdateCb)
+		if err != nil {
+			return err
+		}
+		nextPageToken = res.NextPageToken
+		sourceCacheImages = append(sourceCacheImages, res.CachedMediaItems...)
 	}
-	fmt.Fprintf(os.Stdout, "\033[2K\rUpdated %d source images\n",
+	fmt.Fprintf(os.Stdout, "\033[2K\rUpdated %d source images",
 		sourceCacheUpdateCount)
 
 	// Get the nixplay image metadata for the requested album
@@ -102,7 +108,7 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 		return err
 	}
 
-	work, err := calcSyncGooglephotosWork(sourceCacheImages.CachedMediaItems, npPhotos)
+	work, err := calcSyncGooglephotosWork(sourceCacheImages, npPhotos)
 	if err != nil {
 		return err
 	}
