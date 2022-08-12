@@ -147,16 +147,20 @@ func runGooglephotosList(cmd *cobra.Command, args []string) {
 	if len(args) == 1 {
 		albumId := args[0]
 		if !updateCache {
-			items, err := googlephotos.ListMediaItemsForAlbumId(c, albumId)
-			if err != nil {
-				panic(err)
-			}
-			for _, item := range items {
-				fmt.Printf("Media Item \"%s\":\n", item.Filename)
-				fmt.Printf("  ID: %s\n", item.Id)
-				fmt.Printf("  Description: %s\n", item.Description)
-				fmt.Printf("  Google Photos: %s\n", item.ProductUrl)
-				fmt.Printf("  Raw: %s\n", item.BaseUrl)
+			var nextPageToken string
+			for ok := true; ok; ok = (nextPageToken != "") {
+				resp, err := googlephotos.ListMediaItemsForAlbumId(c, albumId, nextPageToken)
+				if err != nil {
+					panic(err)
+				}
+				nextPageToken = resp.NextPageToken
+				for _, item := range resp.MediaItems {
+					fmt.Printf("Media Item \"%s\":\n", item.Filename)
+					fmt.Printf("  ID: %s\n", item.Id)
+					fmt.Printf("  Description: %s\n", item.Description)
+					fmt.Printf("  Google Photos: %s\n", item.ProductUrl)
+					fmt.Printf("  Raw: %s\n", item.BaseUrl)
+				}
 			}
 			return
 		}
@@ -184,8 +188,12 @@ func runGooglephotosListUpdateCache(client *http.Client, albumId string) {
 		panic(err)
 	}
 
-	_, err = googlephotos.UpdateCacheForAlbumId(client, c, albumId, updateCallback)
-	if err != nil {
-		panic(err)
+	var nextPageToken string
+	for ok := true; ok; ok = (nextPageToken != "") {
+		res, err := googlephotos.UpdateCacheForAlbumId(client, c, albumId, nextPageToken, updateCallback)
+		if err != nil {
+			panic(err)
+		}
+		nextPageToken = res.NextPageToken
 	}
 }

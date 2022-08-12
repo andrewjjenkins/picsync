@@ -30,16 +30,20 @@ func ListAlbums(c *http.Client) ([]*Album, error) {
 	return resp.Albums, err
 }
 
-type searchMediaItemsResponse struct {
+type SearchMediaItemsResponse struct {
 	MediaItems    []*MediaItem `json:"mediaItems"`
 	NextPageToken string       `json:"nextPageToken"`
 }
 
-// FIXME: Handle pagination
-func ListMediaItemsForAlbumId(c *http.Client, albumId string) ([]*MediaItem, error) {
-	resp := searchMediaItemsResponse{}
+func ListMediaItemsForAlbumId(c *http.Client, albumId string, nextPageToken string) (*SearchMediaItemsResponse, error) {
+	resp := SearchMediaItemsResponse{}
 	url := "https://photoslibrary.googleapis.com/v1/mediaItems:search"
-	body := fmt.Sprintf("{\"albumId\":\"%s\"}", albumId)
+	var body string
+	if nextPageToken == "" {
+		body = fmt.Sprintf("{\"albumId\":\"%s\"}", albumId)
+	} else {
+		body = fmt.Sprintf("{\"albumId\":\"%s\",\"pageToken\":\"%s\"}", albumId, nextPageToken)
+	}
 	err := PostUnmarshalJSON(c, url, body, &resp)
-	return resp.MediaItems, err
+	return &resp, err
 }

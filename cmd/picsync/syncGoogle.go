@@ -85,7 +85,7 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 	}
 
 	sourceCacheImages, err := googlephotos.UpdateCacheForAlbumId(
-		gpClient, c, sourceAlbumId, sourceCacheUpdateCb)
+		gpClient, c, sourceAlbumId, "", sourceCacheUpdateCb)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 		return err
 	}
 
-	work, err := calcSyncGooglephotosWork(sourceCacheImages, npPhotos)
+	work, err := calcSyncGooglephotosWork(sourceCacheImages.CachedMediaItems, npPhotos)
 	if err != nil {
 		return err
 	}
