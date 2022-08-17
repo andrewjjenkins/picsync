@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -77,7 +77,7 @@ func doLogin(username string, password string) (auth, error) {
 		jar.SetCookies(u, []*http.Cookie{c})
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return auth{}, err
 	}
@@ -136,7 +136,7 @@ func GetConfig(c *http.Client) {
 	}
 	defer resp.Body.Close()
 	fmt.Printf("Response: %v\n", resp)
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}
@@ -165,7 +165,7 @@ func doPost(c *http.Client, urlString string, values *url.Values) (*http.Respons
 		if cookie.Name == "prod.csrftoken" {
 			if csrfToken != "" {
 				return nil, fmt.Errorf(
-					"Multiple Nixplay CSRF protection cookies (%s)",
+					"multiple Nixplay CSRF protection cookies (%s)",
 					csrfToken,
 				)
 			}
@@ -173,7 +173,7 @@ func doPost(c *http.Client, urlString string, values *url.Values) (*http.Respons
 		}
 	}
 	if csrfToken == "" {
-		return nil, fmt.Errorf("No Nixplay CSRF protection cookie found")
+		return nil, fmt.Errorf("no Nixplay CSRF protection cookie found")
 	}
 	req.Header.Set("X-CSRFToken", csrfToken)
 
