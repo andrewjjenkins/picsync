@@ -23,8 +23,8 @@ var (
 
 func init() {
 	viper = viperLib.New()
-	viper.SetConfigName("picsync-config")
-	viper.AddConfigPath(".")
+	viper.SetConfigName(".picsync-credentials")
+	viper.AddConfigPath("./")
 	viper.AddConfigPath("/etc/picsync/")
 	err := viper.ReadInConfig()
 	if err != nil {

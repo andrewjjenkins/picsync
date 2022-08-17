@@ -10,56 +10,46 @@ import (
 	"github.com/andrewjjenkins/picsync/pkg/cache"
 	"github.com/andrewjjenkins/picsync/pkg/googlephotos"
 	"github.com/andrewjjenkins/picsync/pkg/nixplay"
+	"github.com/andrewjjenkins/picsync/pkg/util"
 	"github.com/spf13/cobra"
 )
 
 var (
 	syncCmd = &cobra.Command{
-		Use:   "sync",
-		Short: "Sync pictures to Nixplay",
+		Use:   "sync [<picsync.yaml>]",
+		Short: "Sync pictures to Nixplay as specified in config file",
 		Run:   runSync,
 	}
-
-	syncEvery    string
-	forcePublish bool
-	dryRun       bool
 )
 
 func init() {
-	syncCmd.PersistentFlags().StringVarP(
-		&syncEvery,
-		"every",
-		"d",
-		"",
-		"Sync every interval (like \"30s\" or \"1h\")",
-	)
-	syncCmd.PersistentFlags().BoolVarP(
-		&dryRun,
-		"dry-run",
-		"n",
-		false,
-		"Do not actually update anything, just print what you would do",
-	)
-	syncCmd.PersistentFlags().BoolVar(
-		&forcePublish,
-		"force-publish",
-		false,
-		"Publish the album to the snapshot/playlist even if unncessary (fixes stale playlists)",
-	)
-
 	rootCmd.AddCommand(syncCmd)
 }
 
 func runSync(cmd *cobra.Command, args []string) {
-	if syncEvery != "" {
+	if len(args) > 1 {
+		panic(fmt.Errorf("pass the path to one picsync.yaml config file"))
+	}
+	configFile := "picsync.yaml"
+	if len(args) == 1 {
+		configFile = args[0]
+	}
+	config, err := util.LoadConfig(configFile)
+	if err != nil {
+		panic(err)
+	}
+
+	if config.Every != "" {
 		panic(fmt.Errorf("sync-every unimplemented here"))
 	}
-	// FIXME: Configurable target
-	runSyncGooglephotosOnce(args, "test2022")
+
+	for _, album := range config.Albums {
+		runSyncGooglephotosOnce(album)
+	}
 }
 
-func runSyncGooglephotosOnce(sourceAlbums []string, nixplayAlbumName string) {
-	err := doSyncGooglephotos(sourceAlbums, nixplayAlbumName)
+func runSyncGooglephotosOnce(album *util.ConfigAlbum) {
+	err := doSyncGooglephotos(album)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		os.Exit(1)
@@ -67,7 +57,7 @@ func runSyncGooglephotosOnce(sourceAlbums []string, nixplayAlbumName string) {
 	os.Exit(0)
 }
 
-func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
+func doSyncGooglephotos(album *util.ConfigAlbum) error {
 	// Log in to services; exit early if there's an auth problem
 	gpClient := getGooglephotoClientOrExit()
 	npClient := getNixplayClientOrExit()
@@ -76,37 +66,37 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 		return err
 	}
 
+	sourceAlbums := album.Sources.Googlephotos
+
 	if len(sourceAlbums) == 0 {
 		fmt.Printf("No source album. Cowardly refusing to delete all destination photos.\n")
 		return nil
 	}
-	if len(sourceAlbums) > 1 {
-		return fmt.Errorf("multiple source albums (%d) unimplemented", len(sourceAlbums))
-	}
-	sourceAlbumId := sourceAlbums[0]
 
-	var sourceCacheUpdateCount int
-	sourceCacheUpdateCb := func(cached *googlephotos.CachedMediaItem) {
-		sourceCacheUpdateCount++
-		fmt.Fprintf(os.Stdout, "\033[2K\rUpdating source image %d...", sourceCacheUpdateCount)
-	}
-
-	var nextPageToken string
 	var sourceCacheImages []*googlephotos.CachedMediaItem
-	for ok := true; ok; ok = (nextPageToken != "") {
-		res, err := googlephotos.UpdateCacheForAlbumId(
-			gpClient, c, sourceAlbumId, nextPageToken, sourceCacheUpdateCb)
-		if err != nil {
-			return err
+	for i, sourceAlbumId := range sourceAlbums {
+		var sourceCacheUpdateCount int
+		sourceCacheUpdateCb := func(cached *googlephotos.CachedMediaItem) {
+			sourceCacheUpdateCount++
+			fmt.Fprintf(os.Stdout, "\033[2K\rUpdating source image %d...", sourceCacheUpdateCount)
 		}
-		nextPageToken = res.NextPageToken
-		sourceCacheImages = append(sourceCacheImages, res.CachedMediaItems...)
+
+		var nextPageToken string
+		for ok := true; ok; ok = (nextPageToken != "") {
+			res, err := googlephotos.UpdateCacheForAlbumId(
+				gpClient, c, sourceAlbumId, nextPageToken, sourceCacheUpdateCb)
+			if err != nil {
+				return err
+			}
+			nextPageToken = res.NextPageToken
+			sourceCacheImages = append(sourceCacheImages, res.CachedMediaItems...)
+		}
+		fmt.Fprintf(os.Stdout, "\033[2K\rUpdated %d source images for album %d/%d\n",
+			sourceCacheUpdateCount, i+1, len(sourceAlbums))
 	}
-	fmt.Fprintf(os.Stdout, "\033[2K\rUpdated %d source images",
-		sourceCacheUpdateCount)
 
 	// Get the nixplay image metadata for the requested album
-	npAlbum, err := nixplay.GetAlbumByName(npClient, nixplayAlbumName)
+	npAlbum, err := nixplay.GetAlbumByName(npClient, album.Name)
 	if err != nil {
 		return err
 	}
@@ -123,7 +113,7 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 	fmt.Printf("  To upload: %d\n", len(work.ToUpload))
 	fmt.Printf("  To delete: %d\n", len(work.ToDelete))
 
-	if dryRun {
+	if album.DryRun != nil && *album.DryRun {
 		return nil
 	}
 
@@ -156,7 +146,7 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 	if err != nil {
 		return err
 	}
-	plName := fmt.Sprintf("ss_%s", nixplayAlbumName)
+	plName := fmt.Sprintf("ss_%s", album.Name)
 	pl, err := nixplay.GetPlaylistByName(npClient, plName)
 	var playlistId int
 	neededCreate := false
@@ -177,6 +167,10 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 		}
 	}
 
+	forcePublish := false
+	if album.ForcePublish != nil {
+		forcePublish = *album.ForcePublish
+	}
 	if len(work.ToUpload) > 0 || len(work.ToDelete) > 0 || neededCreate || forcePublish {
 		err = nixplay.PublishPlaylist(npClient, playlistId, npPhotos)
 		if err != nil {

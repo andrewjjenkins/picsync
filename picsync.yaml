@@ -1,0 +1,28 @@
+# List each target album you want to sync to in Nixplay.
+# Picsync will:
+#   1. Create the album (if it doesn't exit)
+#   2. Upload all photos from each source into the album.
+#   3. Delete all photos in the album not in any source.
+#   4. Create/update a playlist called "ss_<album.name>", containing the
+#      photos from that album.
+albums:
+# This will create/update the nixplay album named "test2022", and
+# create/update the nixplay playlist called "ss_test2022"
+- name: test2022
+  # A list of sources to pull images from.
+  sources:
+    googlephotos:
+    - <ID for a googlephotos album>
+  # If true, do not actually do anything, just report what would be done.
+  #dryRun: true
+  # If false, do not delete photos from nixplay albums (we only add)
+  #delete: false
+  # If true, force publishing the playlist even if nothing has changed.  This
+  # can help fix issues if the nixplay albums or playlists get corrupted.
+  #forcePublish: true
+
+# Repeat the sync every interval forever, rather than running once and exiting.
+# Can be any string parseable by time.ParseInterval
+# Some examples:
+# every: 10m
+# every: 1h

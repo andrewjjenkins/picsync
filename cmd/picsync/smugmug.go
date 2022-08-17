@@ -34,7 +34,8 @@ var (
 		},
 	}
 
-	maxPics int
+	syncEvery string
+	maxPics   int
 )
 
 func init() {

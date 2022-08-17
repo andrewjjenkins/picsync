@@ -1,5 +1,6 @@
 vendor/
-picsync-config.yaml
+.picsync-credentials.yaml
+picsync-*.yaml
 picsync-metadata-cache.db
 .envrc
 __debug_bin
