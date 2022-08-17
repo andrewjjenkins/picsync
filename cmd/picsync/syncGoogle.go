@@ -20,8 +20,9 @@ var (
 		Run:   runSync,
 	}
 
-	syncEvery string
-	dryRun    bool
+	syncEvery    string
+	forcePublish bool
+	dryRun       bool
 )
 
 func init() {
@@ -38,6 +39,12 @@ func init() {
 		"n",
 		false,
 		"Do not actually update anything, just print what you would do",
+	)
+	syncCmd.PersistentFlags().BoolVar(
+		&forcePublish,
+		"force-publish",
+		false,
+		"Publish the album to the snapshot/playlist even if unncessary (fixes stale playlists)",
 	)
 
 	rootCmd.AddCommand(syncCmd)
@@ -134,40 +141,52 @@ func doSyncGooglephotos(sourceAlbums []string, nixplayAlbumName string) error {
 		time.Sleep(5 * time.Second)
 	}
 
+	for i, del := range work.ToDelete {
+		fmt.Fprintf(os.Stdout, "\033[2K\rDeleting image %d/%d...", i+1, len(work.ToDelete))
+		err := deleteGooglephotoFromNixplay(del, npClient)
+		if err != nil {
+			fmt.Printf("\nError deleting photo %s (skipping): %v\n", del.Filename, err)
+		}
+	}
+	fmt.Printf("DONE\nDeleting complete.\n")
+
 	// FIXME: This should be commonized
 	// Now, get the photos again and put them in a playlist
 	npPhotos, err = nixplay.GetPhotos(npClient, npAlbum.ID)
 	if err != nil {
 		return err
 	}
-	ssName := fmt.Sprintf("ss_%s", nixplayAlbumName)
-	ss, err := nixplay.GetSlideshowByName(npClient, ssName)
+	plName := fmt.Sprintf("ss_%s", nixplayAlbumName)
+	pl, err := nixplay.GetPlaylistByName(npClient, plName)
+	var playlistId int
 	neededCreate := false
-	if err != nil {
-		fmt.Printf("Could not find slideshow %s (%v), creating\n", ssName, err)
+	if err == nil {
+		playlistId = pl.Id
+	} else {
+		fmt.Printf("Could not find playlist %s (%v), creating\n", plName, err)
 		fmt.Printf(
-			"If this works, you must then assign the slideshow %s to frames - "+
-				"this program will not do that (but it will update the slideshow once "+
+			"If this works, you must then assign the playlist %s to frames - "+
+				"this program will not do that (but it will update the playlist once "+
 				"you've assigned it)\n",
-			ssName,
+			plName,
 		)
 		neededCreate = true
-		ss, err = nixplay.CreateSlideshow(npClient, ssName)
+		playlistId, err = nixplay.CreatePlaylist(npClient, plName)
 		if err != nil {
 			return err
 		}
 	}
 
-	if len(work.ToUpload) > 0 || neededCreate {
-		err = nixplay.PublishSlideshow(npClient, ss, npPhotos)
+	if len(work.ToUpload) > 0 || len(work.ToDelete) > 0 || neededCreate || forcePublish {
+		err = nixplay.PublishPlaylist(npClient, playlistId, npPhotos)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Published %d photos to slideshow %s\n", len(npPhotos), ssName)
+		fmt.Printf("Published %d photos to playlist %s\n", len(npPhotos), plName)
 	} else {
 		fmt.Printf(
 			"No changes required for slideshow %s (%d photos)\n",
-			ssName,
+			plName,
 			len(npPhotos),
 		)
 	}
@@ -236,4 +255,8 @@ func uploadGooglephotoToNixplay(from *googlephotos.CachedMediaItem, toAlbum int,
 	}
 
 	return nixplay.UploadPhoto(npClient, toAlbum, filename, filetype, filesize, imgResp.Body)
+}
+
+func deleteGooglephotoFromNixplay(del *nixplay.Photo, npClient *http.Client) error {
+	return nixplay.DeletePhoto(npClient, del.ID)
 }
