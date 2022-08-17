@@ -6,33 +6,7 @@ import (
 	"os"
 
 	"github.com/andrewjjenkins/picsync/pkg/nixplay"
-	"github.com/andrewjjenkins/picsync/pkg/smugmug"
 )
-
-func getSmugmugClientOrExit() (c *http.Client) {
-	auth := smugmug.SmugmugAuth{
-		Access: smugmug.AccessAuth{
-			Token:  viper.GetString("smugmug.access.token"),
-			Secret: viper.GetString("smugmug.access.secret"),
-		},
-		Consumer: smugmug.ConsumerAuth{
-			Token:  viper.GetString("smugmug.consumer.token"),
-			Secret: viper.GetString("smugmug.consumer.secret"),
-		},
-	}
-	if auth.Access.Token == "" || auth.Access.Secret == "" ||
-		auth.Consumer.Token == "" || auth.Consumer.Secret == "" {
-		fmt.Printf("No smugmug auth; do \"picsync login -o picsync-config.yaml\"\n")
-		os.Exit(1)
-	}
-	client, err := smugmug.Access(&auth)
-	if err != nil {
-		fmt.Printf("Smugmug auth failed (%v); "+
-			"repeat \"picsync login -o picsync-config.yaml\"\n", err)
-		os.Exit(1)
-	}
-	return client
-}
 
 func getNixplayClientOrExit() (c *http.Client) {
 	username := viper.GetString("nixplay.username")

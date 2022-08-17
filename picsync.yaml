@@ -6,9 +6,9 @@
 #   4. Create/update a playlist called "ss_<album.name>", containing the
 #      photos from that album.
 albums:
-# This will create/update the nixplay album named "test2022", and
-# create/update the nixplay playlist called "ss_test2022"
-- name: test2022
+# This will create/update the nixplay album named "AllMyStuff", and
+# create/update the nixplay playlist called "ss_AllMyStuff"
+- name: AllMyStuff
   # A list of sources to pull images from.
   sources:
     googlephotos:

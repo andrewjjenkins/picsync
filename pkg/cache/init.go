@@ -6,7 +6,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// FIXME: Smugmug
 const newDatabaseSchema = `
 drop table if exists googlephotos;
 create table googlephotos (

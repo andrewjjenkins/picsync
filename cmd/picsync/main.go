@@ -11,7 +11,7 @@ import (
 var (
 	rootCmd = &cobra.Command{
 		Use:   "picsync",
-		Short: "sync pictures from SmugMux to nixplay",
+		Short: "sync pictures from Google Photos to nixplay",
 		Run:   run,
 	}
 
@@ -34,8 +34,6 @@ func init() {
 	viper.SetEnvPrefix("picsync")
 	viper.BindEnv("nixplay_password")
 	viper.BindEnv("nixplay_username")
-	viper.BindEnv("smugmug_api_key")
-	viper.BindEnv("smugmug_api_secret")
 	viper.BindEnv("googlephotos_api_key")
 	viper.BindEnv("googlephotos_api_secret")
 }

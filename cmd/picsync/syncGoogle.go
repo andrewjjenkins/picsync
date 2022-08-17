@@ -219,6 +219,7 @@ type syncGooglephotosWork struct {
 	ToUpload []*googlephotos.CachedMediaItem
 	ToDelete []*nixplay.Photo
 }
+type nixplayAlbumImagesByMd5 map[string]*nixplay.Photo
 
 func calcSyncGooglephotosWork(sourceImgs []*googlephotos.CachedMediaItem, destImgs []*nixplay.Photo) (*syncGooglephotosWork, error) {
 	work := syncGooglephotosWork{}
