@@ -30,6 +30,8 @@ var (
 		Short: "List All albums, or the photos in a particular album (by id)",
 		Run:   runGooglephotosList,
 	}
+
+	listShared = false
 )
 
 func init() {
@@ -48,6 +50,13 @@ func init() {
 		"update-cache",
 		false,
 		"Also update the cache when listing (temporarily downloads each image)",
+	)
+
+	googlephotosList.PersistentFlags().BoolVar(
+		&listShared,
+		"shared",
+		false,
+		"List albums shared with you",
 	)
 
 	googlephotosCmd.AddCommand(googlephotosList)
@@ -131,7 +140,13 @@ func runGooglephotosList(cmd *cobra.Command, args []string) {
 	c := getGooglephotoClientOrExit()
 
 	if len(args) == 0 {
-		albums, err := googlephotos.ListAlbums(c)
+		var albums []*googlephotos.Album
+		var err error
+		if listShared {
+			albums, err = googlephotos.ListSharedAlbums(c)
+		} else {
+			albums, err = googlephotos.ListAlbums(c)
+		}
 		if err != nil {
 			panic(err)
 		}

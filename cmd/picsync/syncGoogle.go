@@ -106,7 +106,7 @@ func doSyncGooglephotos(album *util.ConfigAlbum) error {
 		var sourceCacheUpdateCount int
 		sourceCacheUpdateCb := func(cached *googlephotos.CachedMediaItem) {
 			sourceCacheUpdateCount++
-			fmt.Fprintf(os.Stdout, "\033[2K\rUpdating source image %d...", sourceCacheUpdateCount)
+			fmt.Fprintf(os.Stdout, "\033[2K\rRefreshing source image %d...", sourceCacheUpdateCount)
 		}
 
 		var nextPageToken string
@@ -119,7 +119,7 @@ func doSyncGooglephotos(album *util.ConfigAlbum) error {
 			nextPageToken = res.NextPageToken
 			sourceCacheImages = append(sourceCacheImages, res.CachedMediaItems...)
 		}
-		fmt.Fprintf(os.Stdout, "\033[2K\rUpdated %d source images for album %d/%d\n",
+		fmt.Fprintf(os.Stdout, "\033[2K\rRefreshed %d source images for album %d/%d\n",
 			sourceCacheUpdateCount, i+1, len(sourceAlbums))
 	}
 
@@ -152,7 +152,9 @@ func doSyncGooglephotos(album *util.ConfigAlbum) error {
 			fmt.Printf("\nError uploading photo %s (skipping): %v\n", up.MediaItem.Filename, err)
 		}
 	}
-	fmt.Printf("DONE\nUploading complete.\n")
+	if len(work.ToUpload) > 0 {
+		fmt.Printf("DONE.  Uploading complete.\n")
+	}
 
 	if len(work.ToUpload) > 0 {
 		fmt.Printf("Sleeping for 5 seconds to let nixplay digest uploaded photos...\n")
@@ -166,7 +168,9 @@ func doSyncGooglephotos(album *util.ConfigAlbum) error {
 			fmt.Printf("\nError deleting photo %s (skipping): %v\n", del.Filename, err)
 		}
 	}
-	fmt.Printf("DONE\nDeleting complete.\n")
+	if len(work.ToDelete) > 0 {
+		fmt.Printf("DONE.  Deleting complete.\n")
+	}
 
 	// FIXME: This should be commonized
 	// Now, get the photos again and put them in a playlist

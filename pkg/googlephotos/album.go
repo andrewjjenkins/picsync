@@ -30,6 +30,18 @@ func ListAlbums(c *http.Client) ([]*Album, error) {
 	return resp.Albums, err
 }
 
+type sharedAlbumsResponse struct {
+	SharedAlbums  []*Album `json:"sharedAlbums"`
+	NextPageToken string   `json:"nextPageToken"`
+}
+
+func ListSharedAlbums(c *http.Client) ([]*Album, error) {
+	resp := sharedAlbumsResponse{}
+	url := "https://photoslibrary.googleapis.com/v1/sharedAlbums"
+	err := GetUnmarshalJSON(c, url, &resp)
+	return resp.SharedAlbums, err
+}
+
 type SearchMediaItemsResponse struct {
 	MediaItems    []*MediaItem `json:"mediaItems"`
 	NextPageToken string       `json:"nextPageToken"`
