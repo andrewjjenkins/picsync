@@ -220,6 +220,9 @@ func uploadSmugmugToNixplay(from *smugmug.AlbumImage, toAlbum int, smClient *htt
 	if err != nil {
 		return err
 	}
+	if imgResp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed downloading SmugMug photo to upload (%d)", imgResp.StatusCode)
+	}
 	defer imgResp.Body.Close()
 
 	filename := from.FileName
