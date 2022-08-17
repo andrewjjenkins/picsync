@@ -131,8 +131,11 @@ Once you have setup, just run it:
 picsync sync
 ```
 
-This will create a Nixplay album and sync all photos from the source albums to the 
+This will sync all photos from the source albums to the 
 destination album.
+
+If an album of that name doesn't exist in Nixplay, you need to create it (just go
+to https://app.nixplay.com/#/albums/nixplay/ and do "Create an album").
 
 Nixplay also has a concept of Playlist (formerly known as 
 Slideshow), which would let you pick parts of an album without deleting the whole
@@ -209,7 +212,8 @@ Roadmap/Help Wanted
 -------------------
 1. Instructions on running this in Kubernetes
 1. Instructions on creating the Google Photos App API Client ID
-2. Getting the app generally approved so that users don't have to bring their own API client ID
+1. Getting the app generally approved so that users don't have to bring their own API client ID
+1. Create album in Nixplay if it doesn't exist already.
 
 License
 -------
