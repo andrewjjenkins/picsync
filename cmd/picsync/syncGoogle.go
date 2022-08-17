@@ -11,6 +11,7 @@ import (
 	"github.com/andrewjjenkins/picsync/pkg/googlephotos"
 	"github.com/andrewjjenkins/picsync/pkg/nixplay"
 	"github.com/andrewjjenkins/picsync/pkg/util"
+	"github.com/robfig/cron"
 	"github.com/spf13/cobra"
 )
 
@@ -40,21 +41,48 @@ func runSync(cmd *cobra.Command, args []string) {
 	}
 
 	if config.Every != "" {
-		panic(fmt.Errorf("sync-every unimplemented here"))
-	}
-
-	for _, album := range config.Albums {
-		runSyncGooglephotosOnce(album)
+		runSyncGooglephotosEvery(config.Albums, config.Every)
+	} else {
+		runSyncGooglephotosOnce(config.Albums)
 	}
 }
 
-func runSyncGooglephotosOnce(album *util.ConfigAlbum) {
-	err := doSyncGooglephotos(album)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+func runSyncGooglephotosOnce(albums []*util.ConfigAlbum) {
+	for _, album := range albums {
+		err := doSyncGooglephotos(album)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
 	}
 	os.Exit(0)
+}
+
+func runSyncGooglephotosEvery(albums []*util.ConfigAlbum, every string) {
+	everyCronSpec := fmt.Sprintf("@every %s", every)
+	job := func() {
+		for _, album := range albums {
+			err := doSyncGooglephotos(album)
+			if err != nil {
+				fmt.Printf("Error syncing album %s: %v\n", album.Name, err)
+			}
+		}
+		fmt.Printf("%s: Sync of %d albums complete\n\n",
+			time.Now().String(), len(albums))
+	}
+
+	c := cron.New()
+	err := c.AddFunc(everyCronSpec, job)
+	if err != nil {
+		fmt.Printf("Cannot run every %s: %v\n", every, err)
+		os.Exit(1)
+	}
+	fmt.Printf("Syncing every %s\n", every)
+
+	// Run it once first so that we don't sleep at the beginning
+	job()
+
+	c.Run()
 }
 
 func doSyncGooglephotos(album *util.ConfigAlbum) error {
