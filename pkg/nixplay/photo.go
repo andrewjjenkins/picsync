@@ -208,3 +208,20 @@ func UploadPhoto(c *http.Client, albumID int, filename string, filetype string, 
 
 	return uploadS3(uploader, filename, body)
 }
+
+func DeletePhoto(c *http.Client, id int) error {
+	u := fmt.Sprintf("https://api.nixplay.com/picture/%d/delete/json/", id)
+	req, err := http.NewRequest("POST", u, nil)
+	req.Header.Set("accept", "application/json")
+	res, err := doNixplayCsrf(c, req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("received http %d when deleting nixplay photo %d",
+			res.StatusCode, id)
+	}
+	// We don't care about what's in the body; 200 OK is good enough
+	return nil
+}

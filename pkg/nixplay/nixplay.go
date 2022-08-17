@@ -144,10 +144,6 @@ func GetConfig(c *http.Client) {
 }
 
 func doPost(c *http.Client, urlString string, values *url.Values) (*http.Response, error) {
-	u, err := url.Parse(urlString)
-	if err != nil {
-		return nil, err
-	}
 	req, err := http.NewRequest(
 		"POST",
 		urlString,
@@ -159,8 +155,12 @@ func doPost(c *http.Client, urlString string, values *url.Values) (*http.Respons
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
 
+	return doNixplayCsrf(c, req)
+}
+
+func doNixplayCsrf(c *http.Client, req *http.Request) (*http.Response, error) {
 	var csrfToken string
-	cookies := c.Jar.Cookies(u)
+	cookies := c.Jar.Cookies(req.URL)
 	for _, cookie := range cookies {
 		if cookie.Name == "prod.csrftoken" {
 			if csrfToken != "" {
