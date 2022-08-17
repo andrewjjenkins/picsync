@@ -49,9 +49,9 @@ func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, n
 	toRet.NextPageToken = res.NextPageToken
 	for _, item := range res.MediaItems {
 		// First, see if it is already in the cache.  Google never changes
-		// the contents of a baseUrl, so if it is already present we don't
+		// the contents of a Google Photos ID, so if it is already present we don't
 		// need to download it again.
-		currentEntry, err := c.GetGooglephoto(item.BaseUrl)
+		currentEntry, err := c.GetGooglephoto(item.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -93,11 +93,12 @@ func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, n
 			return nil, err
 		}
 		entry := cache.GooglephotoData{
-			BaseUrl:     item.BaseUrl,
-			Sha256:      hex.EncodeToString(sha256Hash.Sum(nil)),
-			Md5:         hex.EncodeToString(md5Hash.Sum(nil)),
-			LastUpdated: time.Now(),
-			LastUsed:    time.Now(),
+			BaseUrl:        item.BaseUrl,
+			GooglephotosId: item.Id,
+			Sha256:         hex.EncodeToString(sha256Hash.Sum(nil)),
+			Md5:            hex.EncodeToString(md5Hash.Sum(nil)),
+			LastUpdated:    time.Now(),
+			LastUsed:       time.Now(),
 		}
 		err = c.UpsertGooglephoto(&entry)
 		if err != nil {

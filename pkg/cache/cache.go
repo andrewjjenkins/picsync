@@ -8,12 +8,13 @@ import (
 )
 
 type GooglephotoData struct {
-	Id          int64
-	BaseUrl     string
-	Sha256      string
-	Md5         string
-	LastUpdated time.Time
-	LastUsed    time.Time
+	Id             int64
+	BaseUrl        string
+	Sha256         string
+	Md5            string
+	GooglephotosId string
+	LastUpdated    time.Time
+	LastUsed       time.Time
 }
 
 type NixplayData struct {
@@ -53,8 +54,8 @@ func New() (Cache, error) {
 // Updates/inserts a cache entry for a Google Photo.
 // p will be modified with new last used time and, if insert, the new row id.
 func (c *cacheImpl) UpsertGooglephoto(p *GooglephotoData) error {
-	if p.BaseUrl == "" || p.Sha256 == "" || p.Md5 == "" {
-		return errors.New("must provide baseUrl, Sha256, Md5")
+	if p.GooglephotosId == "" || p.BaseUrl == "" || p.Sha256 == "" || p.Md5 == "" {
+		return errors.New("must provide GooglephotosId, baseUrl, Sha256, Md5")
 	}
 	if p.LastUpdated.IsZero() {
 		p.LastUpdated = time.Now()
@@ -63,9 +64,9 @@ func (c *cacheImpl) UpsertGooglephoto(p *GooglephotoData) error {
 
 	if p.Id == 0 {
 		// Caller doesn't know an Id.  Maybe it's new, but let's try to find
-		// it by BaseUrl first.
-		rows, err := c.db.Query("SELECT Id FROM googlephotos WHERE BaseUrl=?;",
-			p.BaseUrl)
+		// it by GooglephotosId first.
+		rows, err := c.db.Query("SELECT Id FROM googlephotos WHERE GooglephotosId=?;",
+			p.GooglephotosId)
 		if err != nil {
 			return err
 		}
@@ -87,9 +88,9 @@ func (c *cacheImpl) UpsertGooglephoto(p *GooglephotoData) error {
 
 func (c *cacheImpl) updateGooglephoto(p *GooglephotoData) error {
 	res, err := c.db.Exec("UPDATE googlephotos "+
-		"SET Sha256=?, Md5=?, LastUsed=?, LastUpdated=? "+
-		"WHERE Id=? AND BaseUrl=? ;",
-		p.Sha256, p.Md5, p.LastUsed, p.LastUpdated, p.Id, p.BaseUrl)
+		"SET Sha256=?, Md5=?, BaseUrl=?, LastUsed=?, LastUpdated=? "+
+		"WHERE Id=? AND GooglephotosId=? ;",
+		p.Sha256, p.Md5, p.BaseUrl, p.LastUsed, p.LastUpdated, p.Id, p.GooglephotosId)
 	if err != nil {
 		return err
 	}
@@ -105,9 +106,9 @@ func (c *cacheImpl) updateGooglephoto(p *GooglephotoData) error {
 
 func (c *cacheImpl) insertGooglephoto(p *GooglephotoData) error {
 	res, err := c.db.Exec("INSERT INTO googlephotos "+
-		"(Sha256, Md5, LastUpdated, LastUsed, BaseUrl)"+
-		"VALUES(?,?,?,?,?);",
-		p.Sha256, p.Md5, p.LastUpdated, p.LastUsed, p.BaseUrl)
+		"(Sha256, Md5, GooglephotosId, BaseUrl, LastUpdated, LastUsed)"+
+		"VALUES(?,?,?,?,?,?);",
+		p.Sha256, p.Md5, p.GooglephotosId, p.BaseUrl, p.LastUpdated, p.LastUsed)
 	if err != nil {
 		return err
 	}
@@ -126,11 +127,11 @@ func (c *cacheImpl) insertGooglephoto(p *GooglephotoData) error {
 	return nil
 }
 
-func (c *cacheImpl) GetGooglephoto(baseUrl string) (*GooglephotoData, error) {
+func (c *cacheImpl) GetGooglephoto(googlephotosId string) (*GooglephotoData, error) {
 	rows, err := c.db.Query(
-		"SELECT Id, BaseUrl, Sha256, Md5, LastUpdated, LastUsed "+
-			"FROM googlephotos WHERE BaseUrl=? LIMIT 1;",
-		baseUrl)
+		"SELECT Id, BaseUrl, Sha256, Md5, GooglephotosId, LastUpdated, LastUsed "+
+			"FROM googlephotos WHERE GooglephotosId=? LIMIT 1;",
+		googlephotosId)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +142,7 @@ func (c *cacheImpl) GetGooglephoto(baseUrl string) (*GooglephotoData, error) {
 	}
 	var toRet GooglephotoData
 	rows.Scan(&toRet.Id, &toRet.BaseUrl, &toRet.Sha256, &toRet.Md5,
-		&toRet.LastUpdated, &toRet.LastUsed)
+		&toRet.GooglephotosId, &toRet.LastUpdated, &toRet.LastUsed)
 	return &toRet, nil
 }
 

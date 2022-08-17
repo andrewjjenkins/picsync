@@ -156,7 +156,7 @@ func runGooglephotosList(cmd *cobra.Command, args []string) {
 				nextPageToken = resp.NextPageToken
 				for _, item := range resp.MediaItems {
 					fmt.Printf("Media Item \"%s\":\n", item.Filename)
-					fmt.Printf("  ID: %s\n", item.Id)
+					fmt.Printf("  Google Photos ID: %s\n", item.Id)
 					fmt.Printf("  Description: %s\n", item.Description)
 					fmt.Printf("  Google Photos: %s\n", item.ProductUrl)
 					fmt.Printf("  Raw: %s\n", item.BaseUrl)
@@ -175,7 +175,7 @@ func runGooglephotosListUpdateCache(client *http.Client, albumId string) {
 	updateCallback := func(cached *googlephotos.CachedMediaItem) {
 		updatedCount++
 		fmt.Printf("Updated %d:\n", updatedCount)
-		fmt.Printf("  ID: %s\n", cached.MediaItem.Id)
+		fmt.Printf("  Google Photos ID: %s\n", cached.MediaItem.Id)
 		fmt.Printf("  Description: %s\n", cached.MediaItem.Description)
 		fmt.Printf("  Google Photos: %s\n", cached.MediaItem.ProductUrl)
 		fmt.Printf("  Raw: %s\n", cached.MediaItem.BaseUrl)

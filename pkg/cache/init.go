@@ -14,6 +14,7 @@ create table googlephotos (
 	BaseUrl TEXT,
 	Sha256 TEXT,
 	Md5 TEXT,
+	GooglephotosId TEXT,
 	LastUpdated INTEGER,
 	LastUsed INTEGER
 );
