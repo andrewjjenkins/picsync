@@ -2,7 +2,6 @@ package googlephotos
 
 import (
 	"fmt"
-	"net/http"
 )
 
 type Album struct {
@@ -23,10 +22,10 @@ type albumsResponse struct {
 }
 
 // FIXME: Handle pagination
-func ListAlbums(c *http.Client) ([]*Album, error) {
+func (c clientImpl) ListAlbums() ([]*Album, error) {
 	resp := albumsResponse{}
 	url := "https://photoslibrary.googleapis.com/v1/albums"
-	err := GetUnmarshalJSON(c, url, &resp)
+	err := GetUnmarshalJSON(c.httpClient, url, &resp)
 	return resp.Albums, err
 }
 
@@ -35,10 +34,10 @@ type sharedAlbumsResponse struct {
 	NextPageToken string   `json:"nextPageToken"`
 }
 
-func ListSharedAlbums(c *http.Client) ([]*Album, error) {
+func (c clientImpl) ListSharedAlbums() ([]*Album, error) {
 	resp := sharedAlbumsResponse{}
 	url := "https://photoslibrary.googleapis.com/v1/sharedAlbums"
-	err := GetUnmarshalJSON(c, url, &resp)
+	err := GetUnmarshalJSON(c.httpClient, url, &resp)
 	return resp.SharedAlbums, err
 }
 
@@ -47,7 +46,7 @@ type SearchMediaItemsResponse struct {
 	NextPageToken string       `json:"nextPageToken"`
 }
 
-func ListMediaItemsForAlbumId(c *http.Client, albumId string, nextPageToken string) (*SearchMediaItemsResponse, error) {
+func (c clientImpl) ListMediaItemsForAlbumId(albumId string, nextPageToken string) (*SearchMediaItemsResponse, error) {
 	resp := SearchMediaItemsResponse{}
 	url := "https://photoslibrary.googleapis.com/v1/mediaItems:search"
 	var body string
@@ -56,6 +55,6 @@ func ListMediaItemsForAlbumId(c *http.Client, albumId string, nextPageToken stri
 	} else {
 		body = fmt.Sprintf("{\"albumId\":\"%s\",\"pageToken\":\"%s\"}", albumId, nextPageToken)
 	}
-	err := PostUnmarshalJSON(c, url, body, &resp)
+	err := PostUnmarshalJSON(c.httpClient, url, body, &resp)
 	return &resp, err
 }

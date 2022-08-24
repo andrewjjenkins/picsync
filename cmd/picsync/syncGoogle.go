@@ -27,6 +27,12 @@ func init() {
 	rootCmd.AddCommand(syncCmd)
 }
 
+type syncClients struct {
+	googlephotos googlephotos.Client
+	nixplay      *http.Client
+	cache        cache.Cache
+}
+
 func runSync(cmd *cobra.Command, args []string) {
 	if len(args) > 1 {
 		panic(fmt.Errorf("pass the path to one picsync.yaml config file"))
@@ -45,24 +51,30 @@ func runSync(cmd *cobra.Command, args []string) {
 		promInitOrDie(config.Prometheus.Listen)
 	}
 
+	clients := syncClients{}
+
 	// Create the cache up here so we can pass it down, this avoids
 	// re-creating the cache (opening/closing Sqlite db) every run
 	// and simplifies prometheus (which doesn't want the metrics re-registered)
-	c, err := cache.New(promReg)
+	clients.cache, err = cache.New(promReg)
 	if err != nil {
 		panic(err)
 	}
 
+	// Log in to services; exit early if there's an auth problem
+	clients.googlephotos = getGooglephotoClientOrExit(clients.cache)
+	clients.nixplay = getNixplayClientOrExit()
+
 	if config.Every != "" {
-		runSyncGooglephotosEvery(config.Albums, config.Every, c)
+		runSyncGooglephotosEvery(clients, config.Albums, config.Every)
 	} else {
-		runSyncGooglephotosOnce(config.Albums, c)
+		runSyncGooglephotosOnce(clients, config.Albums)
 	}
 }
 
-func runSyncGooglephotosOnce(albums []*util.ConfigAlbum, c cache.Cache) {
+func runSyncGooglephotosOnce(clients syncClients, albums []*util.ConfigAlbum) {
 	for _, album := range albums {
-		err := doSyncGooglephotos(album, c)
+		err := doSyncGooglephotos(clients, album)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)
@@ -71,11 +83,11 @@ func runSyncGooglephotosOnce(albums []*util.ConfigAlbum, c cache.Cache) {
 	os.Exit(0)
 }
 
-func runSyncGooglephotosEvery(albums []*util.ConfigAlbum, every string, ca cache.Cache) {
+func runSyncGooglephotosEvery(clients syncClients, albums []*util.ConfigAlbum, every string) {
 	everyCronSpec := fmt.Sprintf("@every %s", every)
 	job := func() {
 		for _, album := range albums {
-			err := doSyncGooglephotos(album, ca)
+			err := doSyncGooglephotos(clients, album)
 			if err != nil {
 				fmt.Printf("Error syncing album %s: %v\n", album.Name, err)
 			}
@@ -98,11 +110,7 @@ func runSyncGooglephotosEvery(albums []*util.ConfigAlbum, every string, ca cache
 	c.Run()
 }
 
-func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
-	// Log in to services; exit early if there's an auth problem
-	gpClient := getGooglephotoClientOrExit()
-	npClient := getNixplayClientOrExit()
-
+func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 	sourceAlbums := album.Sources.Googlephotos
 
 	if len(sourceAlbums) == 0 {
@@ -120,8 +128,8 @@ func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 
 		var nextPageToken string
 		for ok := true; ok; ok = (nextPageToken != "") {
-			res, err := googlephotos.UpdateCacheForAlbumId(
-				gpClient, c, sourceAlbumId, nextPageToken, sourceCacheUpdateCb)
+			res, err := clients.googlephotos.UpdateCacheForAlbumId(
+				sourceAlbumId, nextPageToken, sourceCacheUpdateCb)
 			if err != nil {
 				return err
 			}
@@ -133,11 +141,11 @@ func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 	}
 
 	// Get the nixplay image metadata for the requested album
-	npAlbum, err := nixplay.GetAlbumByName(npClient, album.Name)
+	npAlbum, err := nixplay.GetAlbumByName(clients.nixplay, album.Name)
 	if err != nil {
 		return err
 	}
-	npPhotos, err := nixplay.GetPhotos(npClient, npAlbum.ID)
+	npPhotos, err := nixplay.GetPhotos(clients.nixplay, npAlbum.ID)
 	if err != nil {
 		return err
 	}
@@ -156,7 +164,7 @@ func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 
 	for i, up := range work.ToUpload {
 		fmt.Fprintf(os.Stdout, "\033[2K\rUploading image %d/%d...", i+1, len(work.ToUpload))
-		err := uploadGooglephotoToNixplay(up, npAlbum.ID, npClient)
+		err := uploadGooglephotoToNixplay(up, npAlbum.ID, clients.nixplay)
 		if err != nil {
 			fmt.Printf("\nError uploading photo %s (skipping): %v\n", up.MediaItem.Filename, err)
 		}
@@ -172,7 +180,7 @@ func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 
 	for i, del := range work.ToDelete {
 		fmt.Fprintf(os.Stdout, "\033[2K\rDeleting image %d/%d...", i+1, len(work.ToDelete))
-		err := deleteGooglephotoFromNixplay(del, npClient)
+		err := deleteGooglephotoFromNixplay(del, clients.nixplay)
 		if err != nil {
 			fmt.Printf("\nError deleting photo %s (skipping): %v\n", del.Filename, err)
 		}
@@ -183,12 +191,12 @@ func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 
 	// FIXME: This should be commonized
 	// Now, get the photos again and put them in a playlist
-	npPhotos, err = nixplay.GetPhotos(npClient, npAlbum.ID)
+	npPhotos, err = nixplay.GetPhotos(clients.nixplay, npAlbum.ID)
 	if err != nil {
 		return err
 	}
 	plName := fmt.Sprintf("ss_%s", album.Name)
-	pl, err := nixplay.GetPlaylistByName(npClient, plName)
+	pl, err := nixplay.GetPlaylistByName(clients.nixplay, plName)
 	var playlistId int
 	neededCreate := false
 	if err == nil {
@@ -202,7 +210,7 @@ func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 			plName,
 		)
 		neededCreate = true
-		playlistId, err = nixplay.CreatePlaylist(npClient, plName)
+		playlistId, err = nixplay.CreatePlaylist(clients.nixplay, plName)
 		if err != nil {
 			return err
 		}
@@ -213,7 +221,7 @@ func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 		forcePublish = *album.ForcePublish
 	}
 	if len(work.ToUpload) > 0 || len(work.ToDelete) > 0 || neededCreate || forcePublish {
-		err = nixplay.PublishPlaylist(npClient, playlistId, npPhotos)
+		err = nixplay.PublishPlaylist(clients.nixplay, playlistId, npPhotos)
 		if err != nil {
 			return err
 		}

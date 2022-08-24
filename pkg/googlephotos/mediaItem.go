@@ -40,8 +40,8 @@ type UpdateCacheResult struct {
 
 type UpdateCacheCallback func(*CachedMediaItem)
 
-func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, nextPageToken string, cb UpdateCacheCallback) (*UpdateCacheResult, error) {
-	res, err := ListMediaItemsForAlbumId(client, albumId, nextPageToken)
+func (c *clientImpl) UpdateCacheForAlbumId(albumId string, nextPageToken string, cb UpdateCacheCallback) (*UpdateCacheResult, error) {
+	res, err := c.ListMediaItemsForAlbumId(albumId, nextPageToken)
 	toRet := &UpdateCacheResult{}
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, n
 		// First, see if it is already in the cache.  Google never changes
 		// the contents of a Google Photos ID, so if it is already present we don't
 		// need to download it again.
-		currentEntry, err := c.GetGooglephoto(item.Id)
+		currentEntry, err := c.cache.GetGooglephoto(item.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, n
 			// Update the timestamps and set back to the cache.
 			currentEntry.LastUpdated = time.Now()
 			currentEntry.LastUsed = currentEntry.LastUpdated
-			err = c.UpsertGooglephoto(currentEntry)
+			err = c.cache.UpsertGooglephoto(currentEntry)
 			if err != nil {
 				return nil, err
 			}
@@ -100,7 +100,7 @@ func UpdateCacheForAlbumId(client *http.Client, c cache.Cache, albumId string, n
 			LastUpdated:    time.Now(),
 			LastUsed:       time.Now(),
 		}
-		err = c.UpsertGooglephoto(&entry)
+		err = c.cache.UpsertGooglephoto(&entry)
 		if err != nil {
 			// FIXME: Again, maybe just skip individual errors?
 			return nil, err

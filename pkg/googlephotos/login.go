@@ -3,7 +3,6 @@ package googlephotos
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -64,9 +63,4 @@ func Login(consumerKey string, consumerSecret string) (*oauth2.Token, error) {
 		return nil, err
 	}
 	return token, nil
-}
-
-func Client(consumerKey string, consumerSecret string, ctx context.Context, t *oauth2.Token) *http.Client {
-	config := newOauth2Config(consumerKey, consumerSecret, "")
-	return config.Client(ctx, t)
 }

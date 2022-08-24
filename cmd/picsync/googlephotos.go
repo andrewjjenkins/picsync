@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
@@ -98,7 +97,7 @@ func runGooglephotosLogin(cmd *cobra.Command, args []string) {
 	writeLoginOut(toWrite)
 }
 
-func newGooglePhotosClient() (*http.Client, error) {
+func newGooglePhotosClient(c cache.Cache) (googlephotos.Client, error) {
 	var err error
 
 	consumerKey := viper.GetString("googlephotos_api_key")
@@ -123,29 +122,33 @@ func newGooglePhotosClient() (*http.Client, error) {
 			return nil, err
 		}
 	}
-	c := googlephotos.Client(consumerKey, consumerSecret, context.Background(), &access)
-	return c, nil
+	client := googlephotos.NewClient(consumerKey, consumerSecret, context.Background(), &access, c, promReg)
+	return client, nil
 }
 
-func getGooglephotoClientOrExit() (c *http.Client) {
-	c, err := newGooglePhotosClient()
+func getGooglephotoClientOrExit(c cache.Cache) googlephotos.Client {
+	client, err := newGooglePhotosClient(c)
 	if err != nil {
 		fmt.Printf("Google Photos login error: %v", err)
 		os.Exit(1)
 	}
-	return c
+	return client
 }
 
 func runGooglephotosList(cmd *cobra.Command, args []string) {
-	c := getGooglephotoClientOrExit()
+	myCache, err := cache.New(promReg)
+	if err != nil {
+		panic(err)
+	}
+	c := getGooglephotoClientOrExit(myCache)
 
 	if len(args) == 0 {
 		var albums []*googlephotos.Album
 		var err error
 		if listShared {
-			albums, err = googlephotos.ListSharedAlbums(c)
+			albums, err = c.ListSharedAlbums()
 		} else {
-			albums, err = googlephotos.ListAlbums(c)
+			albums, err = c.ListAlbums()
 		}
 		if err != nil {
 			panic(err)
@@ -164,7 +167,7 @@ func runGooglephotosList(cmd *cobra.Command, args []string) {
 		if !updateCache {
 			var nextPageToken string
 			for ok := true; ok; ok = (nextPageToken != "") {
-				resp, err := googlephotos.ListMediaItemsForAlbumId(c, albumId, nextPageToken)
+				resp, err := c.ListMediaItemsForAlbumId(albumId, nextPageToken)
 				if err != nil {
 					panic(err)
 				}
@@ -185,7 +188,7 @@ func runGooglephotosList(cmd *cobra.Command, args []string) {
 	panic("Unexpected number of args")
 }
 
-func runGooglephotosListUpdateCache(client *http.Client, albumId string) {
+func runGooglephotosListUpdateCache(client googlephotos.Client, albumId string) {
 	var updatedCount int64
 	updateCallback := func(cached *googlephotos.CachedMediaItem) {
 		updatedCount++
@@ -198,14 +201,9 @@ func runGooglephotosListUpdateCache(client *http.Client, albumId string) {
 			cached.CacheId, cached.Md5, cached.Sha256)
 	}
 
-	c, err := cache.New(promReg)
-	if err != nil {
-		panic(err)
-	}
-
 	var nextPageToken string
 	for ok := true; ok; ok = (nextPageToken != "") {
-		res, err := googlephotos.UpdateCacheForAlbumId(client, c, albumId, nextPageToken, updateCallback)
+		res, err := client.UpdateCacheForAlbumId(albumId, nextPageToken, updateCallback)
 		if err != nil {
 			panic(err)
 		}
