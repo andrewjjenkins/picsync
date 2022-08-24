@@ -53,7 +53,12 @@ albums:
 # Can be any string parseable by time.ParseInterval
 # Some examples:
 # every: 10m
-# every: 1h
+every: 1h
+
+# Serve prometheus-compatible metrics
+prometheus:
+  # Listen on port 1971 on every interface
+  listen: ":1971"
 ```
 
 The easiest way to create the .picsync-credentials.yaml file is to run
@@ -187,6 +192,58 @@ using your credentials to put hash-colliding photos into your Nixplay account
 
 You don't need to do anything to initialize `picsync-metadata-cache.db`, and if
 you remove it, we'll re-create it automatically when we first run.
+
+Monitoring
+----------
+
+If you are in the long-running mode (using "every 1h" or similar), then you can
+also specify a port to serve prometheus metrics on:
+
+```yaml
+prometheus:
+  # Listen on port 1971 on every interface
+  listen: ":1971"
+
+  # Listen on port 20000 but only loopback IPv4
+  #listen: "127.0.0.1:20000"
+```
+
+These metrics are currently reported at "/metrics":
+
+```
+# HELP cache_entries_googlephotos Number of entries in the googlephotos cache
+# TYPE cache_entries_googlephotos gauge
+cache_entries_googlephotos 485
+# HELP cache_entries_nixplay Number of entries in the nixplay cache
+# TYPE cache_entries_nixplay gauge
+cache_entries_nixplay 385
+# HELP cache_get_hits_googlephotos Number of gets that were found in the cache
+# TYPE cache_get_hits_googlephotos counter
+cache_get_hits_googlephotos 379
+# HELP cache_get_hits_nixplay Number of gets that were found in the cache
+# TYPE cache_get_hits_nixplay counter
+cache_get_hits_nixplay 0
+# HELP cache_get_misses_googlephotos Number of gets that were not found in the cache
+# TYPE cache_get_misses_googlephotos counter
+cache_get_misses_googlephotos 0
+# HELP cache_get_misses_nixplay Number of gets that were not found in the cache
+# TYPE cache_get_misses_nixplay counter
+cache_get_misses_nixplay 0
+# HELP cache_upserts_insert_googlephotos Number of upserts that were inserts (not found in the cache)
+# TYPE cache_upserts_insert_googlephotos counter
+cache_upserts_insert_googlephotos 0
+# HELP cache_upserts_insert_nixplay Number of upserts that were inserts (not found in the cache)
+# TYPE cache_upserts_insert_nixplay counter
+cache_upserts_insert_nixplay 0
+# HELP cache_upserts_update_googlephotos Number of upserts that were updates (found in the cache)
+# TYPE cache_upserts_update_googlephotos counter
+cache_upserts_update_googlephotos 379
+# HELP cache_upserts_update_nixplay Number of upserts that were updates (found in the cache)
+# TYPE cache_upserts_update_nixplay counter
+cache_upserts_update_nixplay 0
+```
+
+along with the usual goproc and prometheus built-in metrics
 
 Comparison to Nixplay Built-In
 ------------------------------

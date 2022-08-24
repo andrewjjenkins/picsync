@@ -198,7 +198,7 @@ func runGooglephotosListUpdateCache(client *http.Client, albumId string) {
 			cached.CacheId, cached.Md5, cached.Sha256)
 	}
 
-	c, err := cache.New()
+	c, err := cache.New(promReg)
 	if err != nil {
 		panic(err)
 	}

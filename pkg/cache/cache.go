@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type GooglephotoData struct {
@@ -38,9 +40,11 @@ type Cache interface {
 
 type cacheImpl struct {
 	db *sql.DB
+
+	prom cachePromImpl
 }
 
-func New() (Cache, error) {
+func New(reg prometheus.Registerer) (Cache, error) {
 	cache := cacheImpl{}
 	var err error
 
@@ -48,6 +52,8 @@ func New() (Cache, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	cache.promRegister(reg)
 	return &cache, nil
 }
 
@@ -77,12 +83,15 @@ func (c *cacheImpl) UpsertGooglephoto(p *GooglephotoData) error {
 			if err != nil {
 				return err
 			}
+			c.prom.cacheUpsertsUpdateGooglephotos.Inc()
 			return c.updateGooglephoto(p)
 		}
 		rows.Close()
 		// This is an insert
+		c.prom.cacheUpsertsInsertGooglephotos.Inc()
 		return c.insertGooglephoto(p)
 	}
+	c.prom.cacheUpsertsUpdateGooglephotos.Inc()
 	return c.updateGooglephoto(p)
 }
 
@@ -138,11 +147,13 @@ func (c *cacheImpl) GetGooglephoto(googlephotosId string) (*GooglephotoData, err
 	defer rows.Close()
 	found := rows.Next()
 	if !found {
+		c.prom.cacheGetMissesGooglephotos.Inc()
 		return nil, nil
 	}
 	var toRet GooglephotoData
 	rows.Scan(&toRet.Id, &toRet.BaseUrl, &toRet.Sha256, &toRet.Md5,
 		&toRet.GooglephotosId, &toRet.LastUpdated, &toRet.LastUsed)
+	c.prom.cacheGetHitsGooglephotos.Inc()
 	return &toRet, nil
 }
 
@@ -176,12 +187,15 @@ func (c *cacheImpl) UpsertNixplay(n *NixplayData) error {
 			if err != nil {
 				return err
 			}
+			c.prom.cacheUpsertsUpdateNixplay.Inc()
 			return c.updateNixplay(n)
 		}
 		rows.Close()
 		// This is an insert.
+		c.prom.cacheUpsertsInsertNixplay.Inc()
 		return c.insertNixplay(n)
 	}
+	c.prom.cacheUpsertsUpdateNixplay.Inc()
 	return c.updateNixplay(n)
 }
 
@@ -229,21 +243,18 @@ func (c *cacheImpl) insertNixplay(n *NixplayData) error {
 }
 
 type StatusResponse struct {
-	GooglePhotosValidRows   int64
-	GooglePhotosExpiredRows int64
-	NixplayValidRows        int64
-	NixplayExpiredRows      int64
+	GooglePhotosValidRows int64
+	NixplayValidRows      int64
 }
 
 func (c *cacheImpl) Status() (StatusResponse, error) {
 	resp := StatusResponse{}
 
-	// Because Google never modifies content at a particular BaseUrl
-	// (instead creating a new BaseUrl), the mapping from BaseUrl to
+	// Because Google never modifies content at a particular Id
+	// (instead creating a new Id), the mapping from Id to
 	// md5 never becomes invalid.
 	// FIXME: In the future, we could check consistency and also remove
 	// least-recently-used entries.
-	resp.GooglePhotosExpiredRows = 0
 	rows, err := c.db.Query("SELECT COUNT(Id) FROM googlephotos")
 	if err != nil {
 		return StatusResponse{}, err

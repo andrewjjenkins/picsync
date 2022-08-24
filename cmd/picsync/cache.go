@@ -27,7 +27,7 @@ func init() {
 }
 
 func runCacheStatus(cmd *cobra.Command, args []string) {
-	cache, err := cache.New()
+	cache, err := cache.New(promReg)
 	if err != nil {
 		panic(err)
 	}
@@ -38,12 +38,8 @@ func runCacheStatus(cmd *cobra.Command, args []string) {
 	}
 	fmt.Printf("Cache status:\n"+
 		"Google Photos Valid Entries: %d\n"+
-		"Google Photos Expired Entries: %d\n"+
-		"Nixplay Valid Entries: %d\n"+
-		"Nixplay Expired Entries: %d\n",
+		"Nixplay Valid Entries: %d\n",
 		status.GooglePhotosValidRows,
-		status.GooglePhotosExpiredRows,
 		status.NixplayValidRows,
-		status.NixplayExpiredRows,
 	)
 }

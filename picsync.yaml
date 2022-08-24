@@ -25,4 +25,8 @@ albums:
 # Can be any string parseable by time.ParseInterval
 # Some examples:
 # every: 10m
-# every: 1h
+every: 1h
+
+# If long-running, serve metrics via prometheus on port 1971
+prometheus:
+  listen: ":1971"

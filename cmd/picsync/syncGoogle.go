@@ -40,16 +40,29 @@ func runSync(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
+	// Start prometheus
 	if config.Every != "" {
-		runSyncGooglephotosEvery(config.Albums, config.Every)
+		promInitOrDie(config.Prometheus.Listen)
+	}
+
+	// Create the cache up here so we can pass it down, this avoids
+	// re-creating the cache (opening/closing Sqlite db) every run
+	// and simplifies prometheus (which doesn't want the metrics re-registered)
+	c, err := cache.New(promReg)
+	if err != nil {
+		panic(err)
+	}
+
+	if config.Every != "" {
+		runSyncGooglephotosEvery(config.Albums, config.Every, c)
 	} else {
-		runSyncGooglephotosOnce(config.Albums)
+		runSyncGooglephotosOnce(config.Albums, c)
 	}
 }
 
-func runSyncGooglephotosOnce(albums []*util.ConfigAlbum) {
+func runSyncGooglephotosOnce(albums []*util.ConfigAlbum, c cache.Cache) {
 	for _, album := range albums {
-		err := doSyncGooglephotos(album)
+		err := doSyncGooglephotos(album, c)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)
@@ -58,11 +71,11 @@ func runSyncGooglephotosOnce(albums []*util.ConfigAlbum) {
 	os.Exit(0)
 }
 
-func runSyncGooglephotosEvery(albums []*util.ConfigAlbum, every string) {
+func runSyncGooglephotosEvery(albums []*util.ConfigAlbum, every string, ca cache.Cache) {
 	everyCronSpec := fmt.Sprintf("@every %s", every)
 	job := func() {
 		for _, album := range albums {
-			err := doSyncGooglephotos(album)
+			err := doSyncGooglephotos(album, ca)
 			if err != nil {
 				fmt.Printf("Error syncing album %s: %v\n", album.Name, err)
 			}
@@ -85,14 +98,10 @@ func runSyncGooglephotosEvery(albums []*util.ConfigAlbum, every string) {
 	c.Run()
 }
 
-func doSyncGooglephotos(album *util.ConfigAlbum) error {
+func doSyncGooglephotos(album *util.ConfigAlbum, c cache.Cache) error {
 	// Log in to services; exit early if there's an auth problem
 	gpClient := getGooglephotoClientOrExit()
 	npClient := getNixplayClientOrExit()
-	c, err := cache.New()
-	if err != nil {
-		return err
-	}
 
 	sourceAlbums := album.Sources.Googlephotos
 

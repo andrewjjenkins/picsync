@@ -8,8 +8,9 @@ import (
 
 // Config has all the config (aside from credentials) for what to do.
 type Config struct {
-	Albums []*ConfigAlbum `yaml:"albums"`
-	Every  string         `yaml:"every,omitempty"`
+	Albums     []*ConfigAlbum   `yaml:"albums"`
+	Every      string           `yaml:"every,omitempty"`
+	Prometheus ConfigPrometheus `yaml:"prometheus,omitempty"`
 }
 
 type ConfigAlbum struct {
@@ -22,6 +23,10 @@ type ConfigAlbum struct {
 
 type ConfigAlbumSources struct {
 	Googlephotos []string `json:"googlephotos,omitempty"`
+}
+
+type ConfigPrometheus struct {
+	Listen string `yaml:"listen"`
 }
 
 func LoadConfig(filename string) (*Config, error) {
