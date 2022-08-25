@@ -9,6 +9,24 @@ frames.
 
 ![Image of syncing](picsync.png)
 
+Installation
+------------
+
+You can get the latest build as a container:
+
+```
+docker pull gcr.io/picsync-build/github.com/andrewjjenkins/picsync:master-latest
+```
+
+or you can build it locally (go 1.17):
+
+```
+git clone https://github.com/andrewjjenkins/picsync
+cd picsync
+go build ./cmd/picsync
+./picsync --help
+```
+
 Setup
 -----
 
