@@ -133,6 +133,7 @@ func (c *cacheImpl) insertGooglephoto(p *GooglephotoData) error {
 		return err
 	}
 	p.Id = rowId
+	c.prom.cacheEntriesGooglephotos.Inc()
 	return nil
 }
 
@@ -239,6 +240,7 @@ func (c *cacheImpl) insertNixplay(n *NixplayData) error {
 		return err
 	}
 	n.Id = rowId
+	c.prom.cacheEntriesNixplay.Inc()
 	return nil
 }
 
