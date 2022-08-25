@@ -9,7 +9,6 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
-	"time"
 
 	"golang.org/x/net/publicsuffix"
 
@@ -113,34 +112,6 @@ func doLogin(username string, password string) (auth, error) {
 		Token: authOk.Token,
 		Jar:   jar,
 	}, nil
-}
-
-// Login logs in to nixplay
-func Login(username string, password string) (*http.Client, error) {
-	auth, err := doLogin(username, password)
-	if err != nil {
-		return nil, err
-	}
-	client := &http.Client{
-		Timeout: time.Duration(30 * time.Second),
-		Jar:     auth.Jar,
-	}
-	return client, nil
-}
-
-// GetConfig will get the user/app config
-func GetConfig(c *http.Client) {
-	resp, err := c.Get("https://api.nixplay.com/v2/app/config/")
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	defer resp.Body.Close()
-	fmt.Printf("Response: %v\n", resp)
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	fmt.Printf("Body: %v\n", string(body[:]))
 }
 
 func doPost(c *http.Client, urlString string, values *url.Values) (*http.Response, error) {

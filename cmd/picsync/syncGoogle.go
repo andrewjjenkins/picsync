@@ -29,7 +29,7 @@ func init() {
 
 type syncClients struct {
 	googlephotos googlephotos.Client
-	nixplay      *http.Client
+	nixplay      nixplay.Client
 	cache        cache.Cache
 }
 
@@ -141,11 +141,11 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 	}
 
 	// Get the nixplay image metadata for the requested album
-	npAlbum, err := nixplay.GetAlbumByName(clients.nixplay, album.Name)
+	npAlbum, err := clients.nixplay.GetAlbumByName(album.Name)
 	if err != nil {
 		return err
 	}
-	npPhotos, err := nixplay.GetPhotos(clients.nixplay, npAlbum.ID)
+	npPhotos, err := clients.nixplay.GetPhotos(npAlbum.ID)
 	if err != nil {
 		return err
 	}
@@ -191,12 +191,12 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 
 	// FIXME: This should be commonized
 	// Now, get the photos again and put them in a playlist
-	npPhotos, err = nixplay.GetPhotos(clients.nixplay, npAlbum.ID)
+	npPhotos, err = clients.nixplay.GetPhotos(npAlbum.ID)
 	if err != nil {
 		return err
 	}
 	plName := fmt.Sprintf("ss_%s", album.Name)
-	pl, err := nixplay.GetPlaylistByName(clients.nixplay, plName)
+	pl, err := clients.nixplay.GetPlaylistByName(plName)
 	var playlistId int
 	neededCreate := false
 	if err == nil {
@@ -210,7 +210,7 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 			plName,
 		)
 		neededCreate = true
-		playlistId, err = nixplay.CreatePlaylist(clients.nixplay, plName)
+		playlistId, err = clients.nixplay.CreatePlaylist(plName)
 		if err != nil {
 			return err
 		}
@@ -221,7 +221,7 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 		forcePublish = *album.ForcePublish
 	}
 	if len(work.ToUpload) > 0 || len(work.ToDelete) > 0 || neededCreate || forcePublish {
-		err = nixplay.PublishPlaylist(clients.nixplay, playlistId, npPhotos)
+		err = clients.nixplay.PublishPlaylist(playlistId, npPhotos)
 		if err != nil {
 			return err
 		}
@@ -280,7 +280,7 @@ func calcSyncGooglephotosWork(sourceImgs []*googlephotos.CachedMediaItem, destIm
 	return &work, nil
 }
 
-func uploadGooglephotoToNixplay(from *googlephotos.CachedMediaItem, toAlbum int, npClient *http.Client) error {
+func uploadGooglephotoToNixplay(from *googlephotos.CachedMediaItem, toAlbum int, npClient nixplay.Client) error {
 	imgResp, err := http.Get(from.MediaItem.BaseUrl)
 	if err != nil {
 		return err
@@ -298,9 +298,9 @@ func uploadGooglephotoToNixplay(from *googlephotos.CachedMediaItem, toAlbum int,
 		return err
 	}
 
-	return nixplay.UploadPhoto(npClient, toAlbum, filename, filetype, filesize, imgResp.Body)
+	return npClient.UploadPhoto(toAlbum, filename, filetype, filesize, imgResp.Body)
 }
 
-func deleteGooglephotoFromNixplay(del *nixplay.Photo, npClient *http.Client) error {
-	return nixplay.DeletePhoto(npClient, del.ID)
+func deleteGooglephotoFromNixplay(del *nixplay.Photo, npClient nixplay.Client) error {
+	return npClient.DeletePhoto(del.ID)
 }

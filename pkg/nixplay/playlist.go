@@ -37,7 +37,7 @@ type createPlaylistResponseData struct {
 	PlaylistId int `json:"playlistId"`
 }
 
-func CreatePlaylist(c *http.Client, name string) (int, error) {
+func (c *clientImpl) CreatePlaylist(name string) (int, error) {
 	body, err := json.Marshal(createPlaylistData{
 		Name: name,
 	})
@@ -49,7 +49,7 @@ func CreatePlaylist(c *http.Client, name string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	res, err := doNixplayCsrf(c, req)
+	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
 		return -1, err
 	}
@@ -72,13 +72,13 @@ func CreatePlaylist(c *http.Client, name string) (int, error) {
 }
 
 // GetPlaylists gets all configured slideshows for this account
-func GetPlaylists(c *http.Client) ([]*Playlist, error) {
+func (c *clientImpl) GetPlaylists() ([]*Playlist, error) {
 	req, err := http.NewRequest("GET", "https://api.nixplay.com/v3/playlists", nil)
 	req.Header.Set("accept", "application/json")
 	if err != nil {
 		return nil, err
 	}
-	res, err := doNixplayCsrf(c, req)
+	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +99,8 @@ func GetPlaylists(c *http.Client) ([]*Playlist, error) {
 //
 // Playlist names are not guaranteed unique - if you have defined multiple
 // playlists with the same name, then the first one found will be returned.
-func GetPlaylistByName(c *http.Client, name string) (*Playlist, error) {
-	playlists, err := GetPlaylists(c)
+func (c *clientImpl) GetPlaylistByName(name string) (*Playlist, error) {
+	playlists, err := c.GetPlaylists()
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ type publishPlaylistData struct {
 	Items []publishPlaylistDataItem `json:"items"`
 }
 
-func PublishPlaylist(c *http.Client, playlistId int, photos []*Photo) error {
+func (c *clientImpl) PublishPlaylist(playlistId int, photos []*Photo) error {
 	data := publishPlaylistData{}
 	for _, p := range photos {
 		data.Items = append(data.Items, publishPlaylistDataItem{
@@ -149,7 +149,7 @@ func PublishPlaylist(c *http.Client, playlistId int, photos []*Photo) error {
 		return err
 	}
 	req.Header.Set("accept", "application/json")
-	res, err := doNixplayCsrf(c, req)
+	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func PublishPlaylist(c *http.Client, playlistId int, photos []*Photo) error {
 	}
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("accept", "application/json")
-	res, err = doNixplayCsrf(c, req)
+	res, err = doNixplayCsrf(c.httpClient, req)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,6 @@ package nixplay
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/andrewjjenkins/picsync/pkg/util"
 )
@@ -42,14 +41,14 @@ func (a Album) String() string {
 }
 
 // GetAlbums will get a list of Albums available to this user
-func GetAlbums(c *http.Client) ([]*Album, error) {
+func (c *clientImpl) GetAlbums() ([]*Album, error) {
 	albums := []*Album{}
-	err := util.GetUnmarshalJSON(c, "https://api.nixplay.com/albums/web/json/", &albums)
+	err := util.GetUnmarshalJSON(c.httpClient, "https://api.nixplay.com/albums/web/json/", &albums)
 	return albums, err
 }
 
-func GetAlbumByName(c *http.Client, albumName string) (*Album, error) {
-	npAlbums, err := GetAlbums(c)
+func (c *clientImpl) GetAlbumByName(albumName string) (*Album, error) {
+	npAlbums, err := c.GetAlbums()
 	if err != nil {
 		return nil, err
 	}

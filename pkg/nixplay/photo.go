@@ -34,13 +34,13 @@ type Photo struct {
 }
 
 // GetPhotos returns the photos in an album
-func GetPhotos(c *http.Client, albumID int) ([]*Photo, error) {
+func (c *clientImpl) GetPhotos(albumID int) ([]*Photo, error) {
 	type getPhotosResponse struct {
 		Photos []*Photo `json:"photos"`
 	}
 	photos := getPhotosResponse{}
 	u := fmt.Sprintf("https://api.nixplay.com/album/%d/pictures/json", albumID)
-	err := util.GetUnmarshalJSON(c, u, &photos)
+	err := util.GetUnmarshalJSON(c.httpClient, u, &photos)
 	return photos.Photos, err
 }
 
@@ -186,14 +186,14 @@ func uploadS3(u *uploader, filename string, body io.Reader) error {
 }
 
 // UploadPhoto uploads a photo to an album
-func UploadPhoto(c *http.Client, albumID int, filename string, filetype string, filesize uint64, body io.Reader) error {
-	uploadToken, err := getUploadToken(c, albumID)
+func (c *clientImpl) UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.Reader) error {
+	uploadToken, err := getUploadToken(c.httpClient, albumID)
 	if err != nil {
 		return err
 	}
 
 	uploader, err := getUploader(
-		c,
+		c.httpClient,
 		uploadVals{
 			Token:    uploadToken,
 			AlbumID:  albumID,
@@ -209,11 +209,11 @@ func UploadPhoto(c *http.Client, albumID int, filename string, filetype string, 
 	return uploadS3(uploader, filename, body)
 }
 
-func DeletePhoto(c *http.Client, id int) error {
+func (c *clientImpl) DeletePhoto(id int) error {
 	u := fmt.Sprintf("https://api.nixplay.com/picture/%d/delete/json/", id)
 	req, err := http.NewRequest("POST", u, nil)
 	req.Header.Set("accept", "application/json")
-	res, err := doNixplayCsrf(c, req)
+	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
 		return err
 	}

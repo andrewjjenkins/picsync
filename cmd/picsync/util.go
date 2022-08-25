@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/andrewjjenkins/picsync/pkg/nixplay"
 )
 
-func getNixplayClientOrExit() (c *http.Client) {
+func getNixplayClientOrExit() (c nixplay.Client) {
 	username := viper.GetString("nixplay.username")
 	if username == "" {
 		fmt.Printf("Must provide a nixplay username")
@@ -19,7 +18,7 @@ func getNixplayClientOrExit() (c *http.Client) {
 		fmt.Printf("Must provide a nixplay password")
 		os.Exit(1)
 	}
-	c, err := nixplay.Login(username, password)
+	c, err := nixplay.NewClient(username, password, promReg)
 	if err != nil {
 		fmt.Printf("Nixplay login error: %v", err)
 		os.Exit(1)

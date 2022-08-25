@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/andrewjjenkins/picsync/pkg/cache"
-	"github.com/andrewjjenkins/picsync/pkg/nixplay"
 	"github.com/spf13/cobra"
 )
 
@@ -49,7 +48,7 @@ func runNixplayList(cmd *cobra.Command, args []string) {
 func runNixplayListAlbums() {
 	npClient := getNixplayClientOrExit()
 
-	npAlbums, err := nixplay.GetAlbums(npClient)
+	npAlbums, err := npClient.GetAlbums()
 	if err != nil {
 		panic(err)
 	}
@@ -63,11 +62,11 @@ func runNixplayListAlbums() {
 func runNixplayListAlbum(albumName string) {
 	npClient := getNixplayClientOrExit()
 
-	npAlbum, err := nixplay.GetAlbumByName(npClient, albumName)
+	npAlbum, err := npClient.GetAlbumByName(albumName)
 	if err != nil {
 		panic(err)
 	}
-	npPhotos, err := nixplay.GetPhotos(npClient, npAlbum.ID)
+	npPhotos, err := npClient.GetPhotos(npAlbum.ID)
 	if err != nil {
 		panic(err)
 	}
