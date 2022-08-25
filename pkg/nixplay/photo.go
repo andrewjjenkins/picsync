@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -72,9 +71,9 @@ func getUploadToken(c *http.Client, albumID int) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Couldn't create receiver: %v", resp.Status)
+		return "", fmt.Errorf("couldn't create receiver: %v", resp.Status)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
@@ -124,9 +123,9 @@ func getUploader(c *http.Client, v uploadVals) (*uploader, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Couldn't create uploader: %v", resp.Status)
+		return nil, fmt.Errorf("couldn't create uploader: %v", resp.Status)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -176,6 +175,9 @@ func uploadS3(u *uploader, filename string, body io.Reader) error {
 		u.Data.S3UploadURL,
 		reqBody,
 	)
+	if err != nil {
+		return err
+	}
 	req.Header.Set("accept", "application/json, text/plain, */*")
 	ct := fmt.Sprintf("multipart/form-data; boundary=%s", writer.Boundary())
 	req.Header.Set("content-type", ct)
@@ -186,7 +188,7 @@ func uploadS3(u *uploader, filename string, body io.Reader) error {
 		return err
 	}
 	if resp.StatusCode != 201 {
-		return fmt.Errorf("Error uploading: %s", resp.Status)
+		return fmt.Errorf("error uploading: %s", resp.Status)
 	}
 	return nil
 }
