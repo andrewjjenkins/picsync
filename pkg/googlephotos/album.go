@@ -26,6 +26,11 @@ func (c clientImpl) ListAlbums() ([]*Album, error) {
 	resp := albumsResponse{}
 	url := "https://photoslibrary.googleapis.com/v1/albums"
 	err := GetUnmarshalJSON(c.httpClient, url, &resp)
+	if err != nil {
+		c.prom.listAlbumsFailure.Inc()
+	} else {
+		c.prom.listAlbumsSuccess.Inc()
+	}
 	return resp.Albums, err
 }
 
@@ -38,6 +43,11 @@ func (c clientImpl) ListSharedAlbums() ([]*Album, error) {
 	resp := sharedAlbumsResponse{}
 	url := "https://photoslibrary.googleapis.com/v1/sharedAlbums"
 	err := GetUnmarshalJSON(c.httpClient, url, &resp)
+	if err != nil {
+		c.prom.listAlbumsFailure.Inc()
+	} else {
+		c.prom.listAlbumsSuccess.Inc()
+	}
 	return resp.SharedAlbums, err
 }
 
@@ -56,5 +66,11 @@ func (c clientImpl) ListMediaItemsForAlbumId(albumId string, nextPageToken strin
 		body = fmt.Sprintf("{\"albumId\":\"%s\",\"pageToken\":\"%s\"}", albumId, nextPageToken)
 	}
 	err := PostUnmarshalJSON(c.httpClient, url, body, &resp)
+	if err != nil {
+		c.prom.listMediaItemsFailure.Inc()
+	} else {
+		c.prom.listMediaItemsSuccess.Inc()
+		c.prom.listMediaItemsCount.Add(float64(len(resp.MediaItems)))
+	}
 	return &resp, err
 }

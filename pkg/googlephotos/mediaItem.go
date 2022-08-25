@@ -81,17 +81,30 @@ func (c *clientImpl) UpdateCacheForAlbumId(albumId string, nextPageToken string,
 		if err != nil {
 			// FIXME: Maybe we want to skip updating cache for this item if we
 			// just have a download error rather than failing the entire call?
+			c.prom.mediaItemsDownloadedFailure.Inc()
 			return nil, err
 		}
 		if resp.StatusCode != http.StatusOK {
+			c.prom.mediaItemsDownloadedFailure.Inc()
 			return nil, fmt.Errorf("received HTTP %d", resp.StatusCode)
 		}
 		sha256Hash := sha256.New()
 		md5Hash := md5.New()
 		allHashes := io.MultiWriter(sha256Hash, md5Hash)
 		if _, err := io.Copy(allHashes, resp.Body); err != nil {
+			c.prom.mediaItemsDownloadedFailure.Inc()
 			return nil, err
 		}
+		c.prom.mediaItemsDownloadedSuccess.Inc()
+
+		// FIXME: resp.ContentLength may in theory be unknown, but is known
+		// for google photos.  A safer approach would be to make another
+		// member of the io.Multiwriter() that just counted bytes and threw them
+		// on the ground, and then ask it how many bytes we saw.
+		if resp.ContentLength > 0 {
+			c.prom.mediaItemsDownloadedBytes.Add(float64(resp.ContentLength))
+		}
+
 		entry := cache.GooglephotoData{
 			BaseUrl:        item.BaseUrl,
 			GooglephotosId: item.Id,

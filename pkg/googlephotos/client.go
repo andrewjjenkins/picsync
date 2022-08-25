@@ -17,8 +17,9 @@ type Client interface {
 }
 
 type clientImpl struct {
-	httpClient *http.Client
-	cache      cache.Cache
+	httpClient  *http.Client
+	tokenSource oauth2.TokenSource
+	cache       cache.Cache
 
 	prom promImpl
 }
@@ -32,10 +33,13 @@ func NewClient(
 	reg prometheus.Registerer,
 ) Client {
 	config := newOauth2Config(consumerKey, consumerSecret, "")
+	tokenSource := config.TokenSource(ctx, t)
+	httpClient := oauth2.NewClient(ctx, tokenSource)
 
 	gpClient := clientImpl{
-		httpClient: config.Client(ctx, t),
-		cache:      c,
+		httpClient:  httpClient,
+		tokenSource: tokenSource,
+		cache:       c,
 	}
 
 	gpClient.promRegister(reg)
