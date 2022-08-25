@@ -1,6 +1,9 @@
 package cache
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -19,6 +22,8 @@ type cachePromImpl struct {
 	cacheUpsertsUpdateNixplay prometheus.Counter
 	cacheUpsertsInsertNixplay prometheus.Counter
 	cacheEntriesNixplay       prometheus.Gauge
+
+	cacheFileSize prometheus.GaugeFunc
 }
 
 func (c *cacheImpl) promRegister(reg prometheus.Registerer) error {
@@ -85,5 +90,23 @@ func (c *cacheImpl) promRegister(reg prometheus.Registerer) error {
 	c.prom.cacheEntriesGooglephotos.Set(float64(status.GooglePhotosValidRows))
 	c.prom.cacheEntriesNixplay.Set(float64(status.NixplayValidRows))
 
+	c.prom.cacheFileSize = c.prom.promFactory.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Name: "cache_file_size",
+			Help: "Size of the cache database in bytes",
+		}, c.newDbFilesizeGetter())
+
 	return nil
+}
+
+func (c *cacheImpl) newDbFilesizeGetter() func() float64 {
+	return func() float64 {
+		fileinfo, err := os.Stat(c.dbFilename)
+		if err != nil {
+			fmt.Printf("Warning: error reading cache filesize (%s): %s\n",
+				c.dbFilename, err.Error())
+			return -1
+		}
+		return float64(fileinfo.Size())
+	}
 }

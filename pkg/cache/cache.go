@@ -39,16 +39,19 @@ type Cache interface {
 }
 
 type cacheImpl struct {
-	db *sql.DB
+	dbFilename string
+	db         *sql.DB
 
 	prom cachePromImpl
 }
 
 func New(reg prometheus.Registerer) (Cache, error) {
-	cache := cacheImpl{}
+	cache := cacheImpl{
+		dbFilename: "picsync-metadata-cache.db",
+	}
 	var err error
 
-	cache.db, err = Open()
+	cache.db, err = Open(cache.dbFilename)
 	if err != nil {
 		return nil, err
 	}

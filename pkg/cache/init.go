@@ -30,8 +30,8 @@ create table nixplay (
 );
 `
 
-func Open() (*sql.DB, error) {
-	db, err := sql.Open("sqlite", "picsync-metadata-cache.db")
+func Open(dbFilename string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", dbFilename)
 	if err != nil {
 		return nil, err
 	}
