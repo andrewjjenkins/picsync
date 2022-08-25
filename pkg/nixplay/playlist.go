@@ -42,23 +42,28 @@ func (c *clientImpl) CreatePlaylist(name string) (int, error) {
 		Name: name,
 	})
 	if err != nil {
+		c.prom.createPlaylistFailure.Inc()
 		return -1, err
 	}
 	u := "https://api.nixplay.com/v3/playlists"
 	req, err := http.NewRequest("POST", u, bytes.NewBuffer(body))
 	if err != nil {
+		c.prom.createPlaylistFailure.Inc()
 		return -1, err
 	}
 	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
+		c.prom.createPlaylistFailure.Inc()
 		return -1, err
 	}
 	defer res.Body.Close()
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
+		c.prom.createPlaylistFailure.Inc()
 		return -1, err
 	}
 	if res.StatusCode != http.StatusOK {
+		c.prom.createPlaylistFailure.Inc()
 		return -1, fmt.Errorf("couldn't create playlist %s: http %d: %s", name,
 			res.StatusCode, resBody)
 	}
@@ -66,8 +71,10 @@ func (c *clientImpl) CreatePlaylist(name string) (int, error) {
 	var resData createPlaylistResponseData
 	err = json.NewDecoder(res.Body).Decode(&resData)
 	if err != nil {
+		c.prom.createPlaylistFailure.Inc()
 		return -1, err
 	}
+	c.prom.createPlaylistSuccess.Inc()
 	return resData.PlaylistId, nil
 }
 
@@ -76,22 +83,27 @@ func (c *clientImpl) GetPlaylists() ([]*Playlist, error) {
 	req, err := http.NewRequest("GET", "https://api.nixplay.com/v3/playlists", nil)
 	req.Header.Set("accept", "application/json")
 	if err != nil {
+		c.prom.getPlaylistsFailure.Inc()
 		return nil, err
 	}
 	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
+		c.prom.getPlaylistsFailure.Inc()
 		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
+		c.prom.getPlaylistsFailure.Inc()
 		resBody, _ := io.ReadAll(res.Body)
 		return nil, fmt.Errorf("couldn't get playlists: http %d: %s", res.StatusCode, resBody)
 	}
 	var playlists []*Playlist
 	err = json.NewDecoder(res.Body).Decode(&playlists)
 	if err != nil {
+		c.prom.getPlaylistsFailure.Inc()
 		return nil, err
 	}
+	c.prom.getPlaylistsSuccess.Inc()
 	return playlists, err
 }
 
@@ -102,13 +114,16 @@ func (c *clientImpl) GetPlaylists() ([]*Playlist, error) {
 func (c *clientImpl) GetPlaylistByName(name string) (*Playlist, error) {
 	playlists, err := c.GetPlaylists()
 	if err != nil {
+		c.prom.getPlaylistByNameFailure.Inc()
 		return nil, err
 	}
 	for _, playlist := range playlists {
 		if playlist.Name == name {
+			c.prom.getPlaylistByNameSuccess.Inc()
 			return playlist, nil
 		}
 	}
+	c.prom.getPlaylistByNameFailure.Inc()
 	return nil, fmt.Errorf("did not find playlist \"%s\" in %d playlists", name, len(playlists))
 }
 
@@ -128,6 +143,7 @@ func (c *clientImpl) PublishPlaylist(playlistId int, photos []*Photo) error {
 	}
 	body, err := json.Marshal(data)
 	if err != nil {
+		c.prom.publishPlaylistFailure.Inc()
 		return err
 	}
 
@@ -146,42 +162,51 @@ func (c *clientImpl) PublishPlaylist(playlistId int, photos []*Photo) error {
 	u := fmt.Sprintf("https://api.nixplay.com/v3/playlists/%d/items", playlistId)
 	req, err := http.NewRequest("DELETE", u, nil)
 	if err != nil {
+		c.prom.publishPlaylistFailure.Inc()
 		return err
 	}
 	req.Header.Set("accept", "application/json")
 	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
+		c.prom.publishPlaylistFailure.Inc()
 		return err
 	}
 	defer res.Body.Close()
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
+		c.prom.publishPlaylistFailure.Inc()
 		return err
 	}
 	if res.StatusCode != http.StatusOK {
+		c.prom.publishPlaylistFailure.Inc()
 		return fmt.Errorf("couldn't delete items from playlist: http %d: %s", res.StatusCode, resBody)
 	}
 
 	// Now POST back the list of items for the playlist.
 	req, err = http.NewRequest("POST", u, bytes.NewBuffer(body))
 	if err != nil {
+		c.prom.publishPlaylistFailure.Inc()
 		return err
 	}
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("accept", "application/json")
 	res, err = doNixplayCsrf(c.httpClient, req)
 	if err != nil {
+		c.prom.publishPlaylistFailure.Inc()
 		return err
 	}
 	defer res.Body.Close()
 	resBody, err = io.ReadAll(res.Body)
 	if err != nil {
+		c.prom.publishPlaylistFailure.Inc()
 		return err
 	}
 	if res.StatusCode != http.StatusOK {
+		c.prom.publishPlaylistFailure.Inc()
 		return fmt.Errorf("couldn't publish playlist: http %d: %s", res.StatusCode, resBody)
 	}
 
+	c.prom.publishPlaylistSuccess.Inc()
 	// If we got 200 OK, we don't care about the body.
 	return nil
 }

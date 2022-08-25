@@ -41,6 +41,12 @@ func (c *clientImpl) GetPhotos(albumID int) ([]*Photo, error) {
 	photos := getPhotosResponse{}
 	u := fmt.Sprintf("https://api.nixplay.com/album/%d/pictures/json", albumID)
 	err := util.GetUnmarshalJSON(c.httpClient, u, &photos)
+	if err != nil {
+		c.prom.getPhotosFailure.Inc()
+	} else {
+		c.prom.getPhotosSuccess.Inc()
+		c.prom.getPhotosPhotoCount.Add(float64(len(photos.Photos)))
+	}
 	return photos.Photos, err
 }
 
@@ -189,6 +195,7 @@ func uploadS3(u *uploader, filename string, body io.Reader) error {
 func (c *clientImpl) UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.Reader) error {
 	uploadToken, err := getUploadToken(c.httpClient, albumID)
 	if err != nil {
+		c.prom.uploadPhotoFailure.Inc()
 		return err
 	}
 
@@ -203,25 +210,40 @@ func (c *clientImpl) UploadPhoto(albumID int, filename string, filetype string, 
 		},
 	)
 	if err != nil {
+		c.prom.uploadPhotoFailure.Inc()
 		return err
 	}
 
-	return uploadS3(uploader, filename, body)
+	err = uploadS3(uploader, filename, body)
+	if err != nil {
+		c.prom.uploadPhotoFailure.Inc()
+	} else {
+		c.prom.uploadPhotoSuccess.Inc()
+		c.prom.uploadPhotoTotalBytes.Add(float64(filesize))
+	}
+	return err
 }
 
 func (c *clientImpl) DeletePhoto(id int) error {
 	u := fmt.Sprintf("https://api.nixplay.com/picture/%d/delete/json/", id)
 	req, err := http.NewRequest("POST", u, nil)
+	if err != nil {
+		c.prom.deletePhotoFailure.Inc()
+		return err
+	}
 	req.Header.Set("accept", "application/json")
 	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
+		c.prom.deletePhotoFailure.Inc()
 		return err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
+		c.prom.deletePhotoFailure.Inc()
 		return fmt.Errorf("received http %d when deleting nixplay photo %d",
 			res.StatusCode, id)
 	}
+	c.prom.deletePhotoSuccess.Inc()
 	// We don't care about what's in the body; 200 OK is good enough
 	return nil
 }

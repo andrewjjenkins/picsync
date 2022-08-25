@@ -44,6 +44,11 @@ func (a Album) String() string {
 func (c *clientImpl) GetAlbums() ([]*Album, error) {
 	albums := []*Album{}
 	err := util.GetUnmarshalJSON(c.httpClient, "https://api.nixplay.com/albums/web/json/", &albums)
+	if err != nil {
+		c.prom.getAlbumsFailure.Inc()
+	} else {
+		c.prom.getAlbumsSuccess.Inc()
+	}
 	return albums, err
 }
 
@@ -56,13 +61,16 @@ func (c *clientImpl) GetAlbumByName(albumName string) (*Album, error) {
 	for _, a := range npAlbums {
 		if a.Title == albumName {
 			if npAlbum != nil {
+				c.prom.getAlbumByNameFailure.Inc()
 				return nil, fmt.Errorf("duplicate Nixplay albums named %s", albumName)
 			}
 			npAlbum = a
 		}
 	}
 	if npAlbum == nil {
+		c.prom.getAlbumByNameFailure.Inc()
 		return nil, fmt.Errorf("could not find Nixplay album %s", albumName)
 	}
+	c.prom.getAlbumByNameSuccess.Inc()
 	return npAlbum, nil
 }
