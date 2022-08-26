@@ -73,10 +73,15 @@ albums:
 # every: 10m
 every: 1h
 
-# Serve prometheus-compatible metrics
+# If long-running, serve prometheus-compatible metrics
+# This port should not be exposed to the internet
 prometheus:
   # Listen on port 1971 on every interface
   listen: ":1971"
+# If long-running, serve pprof profiles via port 8080
+# This port should not be exposed to the internet
+pprof:
+  listen: ":8080"
 ```
 
 The easiest way to create the .picsync-credentials.yaml file is to run

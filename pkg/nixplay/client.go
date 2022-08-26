@@ -12,7 +12,7 @@ type Client interface {
 	GetAlbums() ([]*Album, error)
 	GetAlbumByName(albumName string) (*Album, error)
 	GetPhotos(albumID int) ([]*Photo, error)
-	UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.Reader) error
+	UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.ReadCloser) error
 	DeletePhoto(id int) error
 	CreatePlaylist(name string) (int, error)
 	GetPlaylists() ([]*Playlist, error)

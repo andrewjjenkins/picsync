@@ -137,7 +137,7 @@ func getUploader(c *http.Client, v uploadVals) (*uploader, error) {
 	return &upResp, nil
 }
 
-func uploadS3(u *uploader, filename string, body io.Reader) error {
+func uploadS3(u *uploader, filename string, body io.ReadCloser) error {
 
 	reqBody := &bytes.Buffer{}
 	writer := multipart.NewWriter(reqBody)
@@ -168,6 +168,7 @@ func uploadS3(u *uploader, filename string, body io.Reader) error {
 	if err != nil {
 		return err
 	}
+	body.Close()
 	writer.Close()
 
 	req, err := http.NewRequest(
@@ -187,6 +188,7 @@ func uploadS3(u *uploader, filename string, body io.Reader) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != 201 {
 		return fmt.Errorf("error uploading: %s", resp.Status)
 	}
@@ -194,7 +196,7 @@ func uploadS3(u *uploader, filename string, body io.Reader) error {
 }
 
 // UploadPhoto uploads a photo to an album
-func (c *clientImpl) UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.Reader) error {
+func (c *clientImpl) UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.ReadCloser) error {
 	uploadToken, err := getUploadToken(c.httpClient, albumID)
 	if err != nil {
 		c.prom.uploadPhotoFailure.Inc()

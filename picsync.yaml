@@ -28,5 +28,11 @@ albums:
 every: 1h
 
 # If long-running, serve metrics via prometheus on port 1971
+# This port should not be exposed to the internet
 prometheus:
   listen: ":1971"
+
+# If long-running, serve pprof profiles via port 8080
+# This port should not be exposed to the internet
+pprof:
+  listen: ":8080"

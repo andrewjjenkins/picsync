@@ -49,6 +49,7 @@ func runSync(cmd *cobra.Command, args []string) {
 	// Start prometheus
 	if config.Every != "" {
 		promInitOrDie(config.Prometheus.Listen)
+		pprofInitOrDie(config.Pprof.Listen)
 	}
 
 	clients := syncClients{}
