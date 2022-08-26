@@ -11,6 +11,7 @@ type Config struct {
 	Albums     []*ConfigAlbum   `yaml:"albums"`
 	Every      string           `yaml:"every,omitempty"`
 	Prometheus ConfigPrometheus `yaml:"prometheus,omitempty"`
+	Pprof      ConfigPprof      `yaml:"pprof,omitempty"`
 }
 
 type ConfigAlbum struct {
@@ -26,6 +27,10 @@ type ConfigAlbumSources struct {
 }
 
 type ConfigPrometheus struct {
+	Listen string `yaml:"listen"`
+}
+
+type ConfigPprof struct {
 	Listen string `yaml:"listen"`
 }
 

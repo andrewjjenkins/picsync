@@ -4,4 +4,4 @@ picsync-*.yaml
 picsync-metadata-cache.db
 .envrc
 __debug_bin
-picsync
+./picsync
