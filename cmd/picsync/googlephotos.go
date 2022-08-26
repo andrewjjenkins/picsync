@@ -183,6 +183,8 @@ func runGooglephotosList(cmd *cobra.Command, args []string) {
 					fmt.Printf("  Description: %s\n", item.Description)
 					fmt.Printf("  Google Photos: %s\n", item.ProductUrl)
 					fmt.Printf("  Raw: %s\n", item.BaseUrl)
+					fmt.Printf("  Width x Height: %d x %d\n",
+						item.MediaMetadata.Width, item.MediaMetadata.Height)
 				}
 			}
 			return
@@ -202,6 +204,10 @@ func runGooglephotosListUpdateCache(client googlephotos.Client, albumId string) 
 		fmt.Printf("  Description: %s\n", cached.MediaItem.Description)
 		fmt.Printf("  Google Photos: %s\n", cached.MediaItem.ProductUrl)
 		fmt.Printf("  Raw: %s\n", cached.MediaItem.BaseUrl)
+		fmt.Printf("  Width x Height: %d x %d\n",
+			cached.MediaItem.MediaMetadata.Width,
+			cached.MediaItem.MediaMetadata.Height,
+		)
 		fmt.Printf("  Cache ID/Md5/Sha256: %d/%s/%s\n",
 			cached.CacheId, cached.Md5, cached.Sha256)
 	}

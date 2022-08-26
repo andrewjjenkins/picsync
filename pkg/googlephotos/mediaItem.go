@@ -13,15 +13,41 @@ import (
 )
 
 type MediaItem struct {
-	Id          string `json:"id"`
-	Description string `json:"description"`
-	ProductUrl  string `json:"productUrl"`
-	BaseUrl     string `json:"baseUrl"`
-	MimeType    string `json:"mimeType"`
-	Filename    string `json:"filename"`
+	Id            string        `json:"id"`
+	Description   string        `json:"description"`
+	ProductUrl    string        `json:"productUrl"`
+	BaseUrl       string        `json:"baseUrl"`
+	MimeType      string        `json:"mimeType"`
+	Filename      string        `json:"filename"`
+	MediaMetadata MediaMetadata `json:"mediaMetadata"`
 
-	// MediaMetadata MediaMetadata `json:"mediaMetadata"`
 	// ContributorInfo ContributorInfo `json:"contributorInfo"`
+}
+
+type MediaMetadata struct {
+	CreationTime string           `json:"creationTime"`
+	Width        MaybeQuotedInt64 `json:"width"`
+	Height       MaybeQuotedInt64 `json:"height"`
+
+	// Either Photo or Video will be present
+	Photo *PhotoMediaMetadata `json:"photo"`
+	Video *VideoMediaMetadata `json:"video"`
+}
+
+type PhotoMediaMetadata struct {
+	CameraMake      string           `json:"cameraMake"`
+	CameraModel     string           `json:"cameraModel"`
+	FocalLength     float64          `json:"focalLength"`
+	ApertureFNumber float64          `json:"apertureFNumber"`
+	IsoEquivalent   MaybeQuotedInt64 `json:"isoEquivalent"`
+	ExposureTime    string           `json:"exposureTime"`
+}
+
+type VideoMediaMetadata struct {
+	CameraMake  string  `json:"cameraMake"`
+	CameraModel string  `json:"cameraModel"`
+	Fps         float64 `json:"fps"`
+	Status      string  `json:"status"`
 }
 
 type CachedMediaItem struct {
@@ -77,7 +103,8 @@ func (c *clientImpl) UpdateCacheForAlbumId(albumId string, nextPageToken string,
 		}
 
 		// Item not in the cache.  We must download it and calculate hashes.
-		resp, err := http.Get(item.BaseUrl)
+		fullResUrl := item.BaseUrl + "=d"
+		resp, err := http.Get(fullResUrl)
 		if err != nil {
 			// FIXME: Maybe we want to skip updating cache for this item if we
 			// just have a download error rather than failing the entire call?
@@ -110,6 +137,8 @@ func (c *clientImpl) UpdateCacheForAlbumId(albumId string, nextPageToken string,
 			GooglephotosId: item.Id,
 			Sha256:         hex.EncodeToString(sha256Hash.Sum(nil)),
 			Md5:            hex.EncodeToString(md5Hash.Sum(nil)),
+			Width:          int64(item.MediaMetadata.Width),
+			Height:         int64(item.MediaMetadata.Height),
 			LastUpdated:    time.Now(),
 			LastUsed:       time.Now(),
 		}

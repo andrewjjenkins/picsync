@@ -281,7 +281,8 @@ func calcSyncGooglephotosWork(sourceImgs []*googlephotos.CachedMediaItem, destIm
 }
 
 func uploadGooglephotoToNixplay(from *googlephotos.CachedMediaItem, toAlbum int, npClient nixplay.Client) error {
-	imgResp, err := http.Get(from.MediaItem.BaseUrl)
+	fullResUrl := from.MediaItem.BaseUrl + "=d"
+	imgResp, err := http.Get(fullResUrl)
 	if err != nil {
 		return err
 	}

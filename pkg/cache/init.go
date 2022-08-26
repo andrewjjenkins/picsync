@@ -13,6 +13,8 @@ create table googlephotos (
 	BaseUrl TEXT,
 	Sha256 TEXT,
 	Md5 TEXT,
+	Width INTEGER,
+	Height INTEGER,
 	GooglephotosId TEXT,
 	LastUpdated INTEGER,
 	LastUsed INTEGER
