@@ -144,7 +144,7 @@ encounter an issue and want to clear it up before waiting an hour.
 
 Here is a general description of what you should expect to see during operation:
 
-## First-time startup
+### First-time startup
 
 You will see a slow stream of googlephotos_list_mediaitems_success as we
 populate the cache of md5s.  Each get is the metadata for 25 pictures (by
@@ -156,7 +156,7 @@ bandwidth / how fast the photos can be downloaded.
 Also the cache_get_misses_googlephotos will increase, 1 for each photo, since
 every photo is a miss (we haven't seen it before).
 
-## Bulk sync
+### Bulk sync
 
 If you've never run this before, then this will happen on the first run, just
 after the previous phase.  This will also happen if you aren't running picsync
@@ -170,7 +170,7 @@ that adds a few bytes).  You'll see nixplay_upload_photos_success increment
 repeatedly, and you should see nixplay_publish_playlist_success increment once
 for each nixplay album.
 
-## Steady State
+### Steady State
 
 This happens when things are synchronized or close.  In this phase, every
 `every` period (in picsync.yaml), something like 1h or so recommended, the
@@ -197,7 +197,7 @@ steady.  We just periodically download the album info from google, find all the
 photos in our cache, download the album info from nixplay, find that they match
 and go back to sleep.
 
-## Google Photos Auth Token
+### Google Photos Auth Token
 
 The `googlephotos_access_token_valid_time_remaining` records how much longer the
 short-lived access token is valid for.  This token is automatically refreshed
