@@ -146,14 +146,14 @@ Here is a general description of what you should expect to see during operation:
 
 ### First-time startup
 
-You will see a slow stream of googlephotos_list_mediaitems_success as we
+You will see a slow stream of `googlephotos_list_mediaitems_success` as we
 populate the cache of md5s.  Each get is the metadata for 25 pictures (by
 default) and we'll download each one and compute its md5.
 
-You will see googlephotos_download_bytes increase, basically limited by network
-bandwidth / how fast the photos can be downloaded.
+You will see `googlephotos_download_bytes increase`, basically limited by
+network bandwidth or how fast the photos can be downloaded.
 
-Also the cache_get_misses_googlephotos will increase, 1 for each photo, since
+Also the `cache_get_misses_googlephotos` will increase, 1 for each photo, since
 every photo is a miss (we haven't seen it before).
 
 ### Bulk sync
@@ -164,11 +164,11 @@ continuously and make a bunch of changes, or if you add a new album to
 picsync.yaml.
 
 This phase is an upload of a bunch of photos.  You'll see
-googlephotos_download_bytes increase, and nixplay_upload_photos_bytes increase,
-pretty close to identically (there's a little wrapper for the nixplay upload
-that adds a few bytes).  You'll see nixplay_upload_photos_success increment
-repeatedly, and you should see nixplay_publish_playlist_success increment once
-for each nixplay album.
+`googlephotos_download_bytes` increase, and `nixplay_upload_photos_bytes`
+increase, pretty close to identically (there's a little wrapper for the nixplay
+upload that adds a few bytes).  You'll see `nixplay_upload_photos_success`
+increment repeatedly, and you should see `nixplay_publish_playlist_success`
+increment once for each nixplay album.
 
 ### Steady State
 
@@ -179,23 +179,24 @@ syncer runs and finds nothing to do.
 Every `every` period, you'll see googlephotos_list_mediaitems_success go up.  It
 will increment by approximately `ceil(totalPhotosAcrossAllSources/25)`.  In the
 steady case, all or nearly all photos will be ones we've already seen, so you
-will see cache_get_hits_googlephotos increment.
+will see `cache_get_hits_googlephotos` increment.
 
-If there are a few misses, you will see googlephotos_mediaitems_downloaded_bytes
-increment, and then you will see cache_file_size and cache_entries_googlephotos
-increase (as we record the md5s of the new photos into the cache).  Then you'll
-see nixplay_upload_photos_success increase and finally an increment of
-nixplay_publish_playlist_success as we publish the few new photos.
+If there are a few misses, you will see
+`googlephotos_mediaitems_downloaded_bytes` increment, and then you will see
+`cache_file_size` and `cache_entries_googlephotos` increase (as we record the
+md5s of the new photos into the cache).  Then you'll see
+`nixplay_upload_photos_success` increase and finally an increment of
+`nixplay_publish_playlist_success` as we publish the few new photos.
 
 If there are no new photos, and no removed photos, then you will not see
-nixplay_upload_photos_success or nixplay_publish_playlist_success (unless
+`nixplay_upload_photos_success` or `nixplay_publish_playlist_success` (unless
 `forcePublish: true`).
 
 In the steady state, no photos are downloaded or uploaded, and the
-googlephotos_mediaitems_downloaded_bytes and nixplay_upload_photos_bytes will be
-steady.  We just periodically download the album info from google, find all the
-photos in our cache, download the album info from nixplay, find that they match
-and go back to sleep.
+`googlephotos_mediaitems_downloaded_bytes` and `nixplay_upload_photos_bytes`
+will be steady.  We just periodically download the album info from google, find
+all the photos in our cache, download the album info from nixplay, find that
+they match and go back to sleep.
 
 ### Google Photos Auth Token
 
