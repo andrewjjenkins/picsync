@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: picsync
+  labels:
+    app: picsync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: picsync
+  template:
+    metadata:
+      labels:
+        app: picsync
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "1971"
+    spec:
+      volumes:
+      - name: config-volume
+        configMap:
+          name: picsync
+      - name: credentials-volume
+        secret:
+          secretName: picsync-credentials
+      containers:
+      - name: picsync
+        image: gcr.io/picsync-build/github.com/andrewjjenkins/picsync:master-latest
+        imagePullPolicy: Always
+        command:
+        - /picsync
+        - sync
+        - /etc/picsync/picsync.yaml
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 1
+          requests:
+            memory: 512Mi
+            cpu: 0.25
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/picsync
+        - name: credentials-volume
+          mountPath: /etc/picsync-credentials
+        ports:
+        - containerPort: 1971
+          name: metrics
+
