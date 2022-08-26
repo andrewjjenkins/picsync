@@ -25,17 +25,11 @@ func init() {
 	viper = viperLib.New()
 	viper.SetConfigName(".picsync-credentials")
 	viper.AddConfigPath("./")
-	viper.AddConfigPath("/etc/picsync/")
+	viper.AddConfigPath("/etc/picsync-credentials/")
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Printf("Error reading config file, skipping config file\n")
 	}
-
-	viper.SetEnvPrefix("picsync")
-	viper.BindEnv("nixplay_password")
-	viper.BindEnv("nixplay_username")
-	viper.BindEnv("googlephotos_api_key")
-	viper.BindEnv("googlephotos_api_secret")
 }
 
 func run(cmd *cobra.Command, args []string) {

@@ -64,11 +64,11 @@ func init() {
 }
 
 func runGooglephotosLogin(cmd *cobra.Command, args []string) {
-	consumerKey := viper.GetString("googlephotos_api_key")
+	consumerKey := viper.GetString("googlephotos.api.key")
 	if consumerKey == "" {
 		panic("Must provide a Google Photos API key")
 	}
-	consumerSecret := viper.GetString("googlephotos_api_secret")
+	consumerSecret := viper.GetString("googlephotos.api.secret")
 	if consumerSecret == "" {
 		panic("Must provide a Google Photos API secret")
 	}
@@ -84,11 +84,16 @@ func runGooglephotosLogin(cmd *cobra.Command, args []string) {
 		"# Keep this file confidential.\n"+
 			"# If you lose it, de-authorize nixplay-sync from your Google Photos account and repeat 'picsync googlephotos login'\n"+
 			"googlephotos:\n"+
+			"  api:\n"+
+			"    key: \"%s\"\n"+
+			"    secret: \"%s\"\n"+
 			"  access:\n"+
 			"    token_type: \"%s\"\n"+
 			"    access_token: \"%s\"\n"+
 			"    refresh_token: \"%s\"\n"+
 			"    expiry: \"%s\"\n",
+		consumerKey,
+		consumerSecret,
 		auth.Access.TokenType,
 		auth.Access.AccessToken,
 		auth.Access.RefreshToken,
@@ -100,11 +105,11 @@ func runGooglephotosLogin(cmd *cobra.Command, args []string) {
 func newGooglePhotosClient(c cache.Cache) (googlephotos.Client, error) {
 	var err error
 
-	consumerKey := viper.GetString("googlephotos_api_key")
+	consumerKey := viper.GetString("googlephotos.api.key")
 	if consumerKey == "" {
 		return nil, fmt.Errorf("must provide a Google Photos API key")
 	}
-	consumerSecret := viper.GetString("googlephotos_api_secret")
+	consumerSecret := viper.GetString("googlephotos.api.secret")
 	if consumerSecret == "" {
 		return nil, fmt.Errorf("must provide a Google Photos API secret")
 	}
