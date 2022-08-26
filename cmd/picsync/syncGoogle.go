@@ -286,10 +286,10 @@ func uploadGooglephotoToNixplay(from *googlephotos.CachedMediaItem, toAlbum int,
 	if err != nil {
 		return err
 	}
+	defer imgResp.Body.Close()
 	if imgResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed downloading Googlephoto to upload (%d)", imgResp.StatusCode)
 	}
-	defer imgResp.Body.Close()
 
 	filename := from.MediaItem.Filename
 	filetype := imgResp.Header.Get("content-type")

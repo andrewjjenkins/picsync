@@ -111,6 +111,7 @@ func (c *clientImpl) UpdateCacheForAlbumId(albumId string, nextPageToken string,
 			c.prom.mediaItemsDownloadedFailure.Inc()
 			return nil, err
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			c.prom.mediaItemsDownloadedFailure.Inc()
 			return nil, fmt.Errorf("received HTTP %d", resp.StatusCode)
