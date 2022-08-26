@@ -263,6 +263,22 @@ cache_upserts_update_nixplay 0
 
 along with the usual goproc and prometheus built-in metrics
 
+
+Running in Kubernetes
+---------------------
+
+You can run picsync as a pod in Kubernetes.
+
+First you must run `picsync googlecloud login -o .picsync-credentials.yaml` to
+set credentials.
+
+```
+kubectl create ns picsync
+kubectl create configmap -n picsync picsync --from-file=picsync.yaml=./picsync.yaml
+kubectl create secret -n picsync generic picsync-credentials --from-file=.picsync-credentials.yaml=./.picsync-credentials.yaml
+kubectl apply -n picsync k8s/deployment.yaml
+```
+
 Comparison to Nixplay Built-In
 ------------------------------
 
@@ -285,7 +301,6 @@ this project is just a historic curiousity :-).
 
 Roadmap/Help Wanted
 -------------------
-1. Instructions on running this in Kubernetes
 1. Instructions on creating the Google Photos App API Client ID
 1. Getting the app generally approved so that users don't have to bring their own API client ID
 1. Create album in Nixplay if it doesn't exist already.
