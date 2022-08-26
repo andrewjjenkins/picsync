@@ -231,43 +231,11 @@ prometheus:
   #listen: "127.0.0.1:20000"
 ```
 
-These metrics are currently reported at "/metrics":
+Here's a Grafana dashboard showing picsync in action:
 
-```
-# HELP cache_entries_googlephotos Number of entries in the googlephotos cache
-# TYPE cache_entries_googlephotos gauge
-cache_entries_googlephotos 485
-# HELP cache_entries_nixplay Number of entries in the nixplay cache
-# TYPE cache_entries_nixplay gauge
-cache_entries_nixplay 385
-# HELP cache_get_hits_googlephotos Number of gets that were found in the cache
-# TYPE cache_get_hits_googlephotos counter
-cache_get_hits_googlephotos 379
-# HELP cache_get_hits_nixplay Number of gets that were found in the cache
-# TYPE cache_get_hits_nixplay counter
-cache_get_hits_nixplay 0
-# HELP cache_get_misses_googlephotos Number of gets that were not found in the cache
-# TYPE cache_get_misses_googlephotos counter
-cache_get_misses_googlephotos 0
-# HELP cache_get_misses_nixplay Number of gets that were not found in the cache
-# TYPE cache_get_misses_nixplay counter
-cache_get_misses_nixplay 0
-# HELP cache_upserts_insert_googlephotos Number of upserts that were inserts (not found in the cache)
-# TYPE cache_upserts_insert_googlephotos counter
-cache_upserts_insert_googlephotos 0
-# HELP cache_upserts_insert_nixplay Number of upserts that were inserts (not found in the cache)
-# TYPE cache_upserts_insert_nixplay counter
-cache_upserts_insert_nixplay 0
-# HELP cache_upserts_update_googlephotos Number of upserts that were updates (found in the cache)
-# TYPE cache_upserts_update_googlephotos counter
-cache_upserts_update_googlephotos 379
-# HELP cache_upserts_update_nixplay Number of upserts that were updates (found in the cache)
-# TYPE cache_upserts_update_nixplay counter
-cache_upserts_update_nixplay 0
-```
+![Image of Grafana Dashboard](doc/prometheus-grafana.png)
 
-along with the usual goproc and prometheus built-in metrics
-
+For a complete list of metrics, see [doc/monitoring.md](doc/monitoring.md)
 
 Running in Kubernetes
 ---------------------
