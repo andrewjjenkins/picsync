@@ -231,6 +231,9 @@ prometheus:
   #listen: "127.0.0.1:20000"
 ```
 
+The file [k8s/podmonitor.yaml](k8s/podmonitor.yaml) contains an example
+`PodMonitor` that tells the Prometheus Operator how to scrape picsync.
+
 Here's a Grafana dashboard showing picsync in action:
 
 ![Image of Grafana Dashboard](doc/prometheus-grafana.png)

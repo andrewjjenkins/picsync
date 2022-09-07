@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: picsync
+  # You may need to create this in the namespace where the prometheus
+  # operator runs, rather than where picsync is installed.
+  # namespace: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: picsync
+  namespaceSelector:
+    any: true
+    # Or, you can limit it to particular namespaces:
+    # matchNames:
+    # - picsync
+  podMetricsEndpoints:
+  - interval: 30s
+    port: metrics
+
