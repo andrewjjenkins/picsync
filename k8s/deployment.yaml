@@ -25,12 +25,19 @@ spec:
       - name: credentials-volume
         secret:
           secretName: picsync-credentials
+      # Uncomment to use persistent storage (and "kubectl apply -f pvc.yaml")
+      #- name: picsync-cache
+      #  persistentVolumeClaim:
+      #    claimName: picsync-cache
       containers:
       - name: picsync
         image: gcr.io/picsync-build/github.com/andrewjjenkins/picsync:master-latest
         imagePullPolicy: Always
         command:
         - /picsync
+        # Uncomment the next two lines to use persistent storage.
+        # - --cache
+        # - /picsync-cache/picsync-metadata-cache.db
         - sync
         - /etc/picsync/picsync.yaml
         resources:
@@ -45,6 +52,9 @@ spec:
           mountPath: /etc/picsync
         - name: credentials-volume
           mountPath: /etc/picsync-credentials
+        # Uncomment to use persistent storage
+        # - name: picsync-cache
+        #   mountPath: /picsync-cache
         ports:
         - containerPort: 1971
           name: metrics

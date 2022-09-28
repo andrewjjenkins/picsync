@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: picsync-cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # You may need to update storageClassName.  Try running
+  # "kubectl get storageclass" to discover what classes are available
+  storageClassName: nfs-client
+  resources:
+    requests:
+      # 10Mi is enough for about 10,000 photos (we only store the metadata)
+      storage: 10Mi
