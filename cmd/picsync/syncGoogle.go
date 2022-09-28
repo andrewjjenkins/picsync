@@ -144,7 +144,11 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 	// Get the nixplay image metadata for the requested album
 	npAlbum, err := clients.nixplay.GetAlbumByName(album.Name)
 	if err != nil {
-		return err
+		fmt.Printf("Could not get nixplay album %s, creating.\n", album.Name)
+		npAlbum, err = clients.nixplay.CreateAlbum(album.Name)
+		if err != nil {
+			return err
+		}
 	}
 	npPhotos, err := clients.nixplay.GetPhotos(npAlbum.ID)
 	if err != nil {

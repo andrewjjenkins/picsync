@@ -1,7 +1,12 @@
 package nixplay
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 
 	"github.com/andrewjjenkins/picsync/pkg/util"
 )
@@ -73,4 +78,39 @@ func (c *clientImpl) GetAlbumByName(albumName string) (*Album, error) {
 	}
 	c.prom.getAlbumByNameSuccess.Inc()
 	return npAlbum, nil
+}
+
+func (c *clientImpl) CreateAlbum(name string) (*Album, error) {
+	vals := url.Values{
+		"name": []string{name},
+	}
+	res, err := doPost(c.httpClient, "https://api.nixplay.com/album/create/json/", &vals)
+	if err != nil {
+		c.prom.createAlbumFailure.Inc()
+		return nil, err
+	}
+	defer res.Body.Close()
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.prom.createAlbumFailure.Inc()
+		return nil, err
+	}
+	if res.StatusCode != http.StatusOK {
+		c.prom.createAlbumFailure.Inc()
+		return nil, fmt.Errorf("Couldn't create album %s: http %d: %s", name,
+			res.StatusCode, resBody)
+	}
+
+	var resData []*Album
+	err = json.NewDecoder(bytes.NewBuffer(resBody)).Decode(&resData)
+	if err != nil {
+		c.prom.createAlbumFailure.Inc()
+		return nil, err
+	}
+	if len(resData) != 1 {
+		c.prom.createAlbumFailure.Inc()
+		return nil, fmt.Errorf("expected create to return 1 album, got %d", len(resData))
+	}
+	c.prom.createAlbumSuccess.Inc()
+	return resData[0], nil
 }
