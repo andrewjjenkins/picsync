@@ -59,6 +59,8 @@ albums:
   sources:
     googlephotos:
     - <ID for a googlephotos album>
+    - <ID for additional googlephotos album>
+    - <ID for shared googlephotos album>
   # If true, do not actually do anything, just report what would be done.
   #dryRun: true
   # If false, do not delete photos from nixplay albums (we only add)
@@ -139,6 +141,19 @@ albums:
     - AP5WpWre...
     - AP5WpWoif...
 ```
+
+To list albums that were shared with you, but created by someone else, use the `--shared` option.
+
+```
+$ picsync googlephotos list --shared
+Album "xmasphoto":
+  ID: AP5WpWoif...
+  Items: 1
+  Google Photos: https://photos.google.com/lr/album/AP5WpWoif...
+```
+
+IDs for shared albums work the same as for ones you created - you can use a shared album ID as a source for a frame.  You can also use combinations of shared and created-by-you.
+
 
 You can also list the photos in a particular album using `picsync googlephotos list <albumID>`:
 
@@ -271,9 +286,9 @@ I had a lot of trouble ever getting any of the built-in dynamic album functional
 to work with Google Photos (though that was a few years ago).  This may not be
 a relevant complaint anymore.
 
-In short, you may find that the Nixplay webapp does everything you need, you're
-comfortable with their security and handling of Google tokens, and
-this project is just a historic curiousity :-).
+This project supports syncing from shared google photos albums (ones that you
+didn't create, but were shared with you).  Nixplay's web app does not (as of
+Sept 2022).
 
 Roadmap/Help Wanted
 -------------------
