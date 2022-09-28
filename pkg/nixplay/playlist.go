@@ -51,6 +51,8 @@ func (c *clientImpl) CreatePlaylist(name string) (int, error) {
 		c.prom.createPlaylistFailure.Inc()
 		return -1, err
 	}
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("content-type", "application/json")
 	res, err := doNixplayCsrf(c.httpClient, req)
 	if err != nil {
 		c.prom.createPlaylistFailure.Inc()
@@ -69,7 +71,7 @@ func (c *clientImpl) CreatePlaylist(name string) (int, error) {
 	}
 
 	var resData createPlaylistResponseData
-	err = json.NewDecoder(res.Body).Decode(&resData)
+	err = json.NewDecoder(bytes.NewBuffer(resBody)).Decode(&resData)
 	if err != nil {
 		c.prom.createPlaylistFailure.Inc()
 		return -1, err

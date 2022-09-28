@@ -20,6 +20,8 @@ type promImpl struct {
 	uploadPhotoTotalBytes    prometheus.Counter
 	deletePhotoSuccess       prometheus.Counter
 	deletePhotoFailure       prometheus.Counter
+	createAlbumSuccess       prometheus.Counter
+	createAlbumFailure       prometheus.Counter
 	createPlaylistSuccess    prometheus.Counter
 	createPlaylistFailure    prometheus.Counter
 	getPlaylistsSuccess      prometheus.Counter
@@ -103,6 +105,18 @@ func (c *clientImpl) promRegister(reg prometheus.Registerer) error {
 		prometheus.CounterOpts{
 			Name: "nixplay_upload_photos_bytes",
 			Help: "Total count of bytes of photos successfully uploaded",
+		},
+	)
+	c.prom.createAlbumSuccess = c.prom.promFactory.NewCounter(
+		prometheus.CounterOpts{
+			Name: "nixplay_create_album_success",
+			Help: "Successful creation of album",
+		},
+	)
+	c.prom.createAlbumFailure = c.prom.promFactory.NewCounter(
+		prometheus.CounterOpts{
+			Name: "nixplay_create_album_failure",
+			Help: "Failed creation of album",
 		},
 	)
 	c.prom.createPlaylistSuccess = c.prom.promFactory.NewCounter(
