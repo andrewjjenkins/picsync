@@ -177,8 +177,7 @@ picsync sync
 This will sync all photos from the source albums to the 
 destination album.
 
-If an album of that name doesn't exist in Nixplay, you need to create it (just go
-to https://app.nixplay.com/#/albums/nixplay/ and do "Create an album").
+If an album of that name doesn't exist in Nixplay, it will be created.
 
 Nixplay also has a concept of Playlist (formerly known as 
 Slideshow), which would let you pick parts of an album without deleting the whole
@@ -188,8 +187,27 @@ make a playlist/slideshow called "ss_<albumName>" and automatically sync the alb
 into the playlist.  So, for the above example, the Nixplay album is called 
 `AllMyStuff` and the Nixplay playlist is called "ss_AllMyStuff".
 
+Syncing Playlists to Frames
+---------------------------
+
+Once successful, you will get a message like:
+
+```
+Could not find playlist "ss_test" (did not find playlist "ss_test" in 10 playlists), creating
+If this works, you must then assign the playlist ss_test to frames - this program will not do that (but it will update the playlist once you've assigned it)
+Published 29 photos to playlist ss_test
+```
+
+This means we've successfully created the playlist and synced the photos to it,
+but it isn't yet visible on any Nixplay smart frames.  We don't manage which
+playlists are mapped to which frames (and don't manage frames at all).
+
 Go to https://app.nixplay.com/#/frames/ and click on a frame, then click "Enable
-Playlist" for `ss_Nixplay Album` and it should automatically sync.
+Playlist" for `ss_test` and Nixplay will automatically sync to the frame.
+
+This is a one-time step for a playlist - once a playlist is mapped to one
+or more frames, we can update the photos in the playlist and Nixplay will
+automatically sync them out for us.  You don't need to log back into Nixplay.
 
 Looping
 -------
