@@ -73,7 +73,7 @@ func runNixplayListAlbum(albumName string) {
 
 	var c cache.Cache
 	if updateCache {
-		c, err = cache.New(promReg)
+		c, err = cache.New(promReg, cacheFilename)
 		if err != nil {
 			panic(err)
 		}

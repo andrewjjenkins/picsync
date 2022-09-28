@@ -47,9 +47,12 @@ type cacheImpl struct {
 	prom cachePromImpl
 }
 
-func New(reg prometheus.Registerer) (Cache, error) {
+func New(reg prometheus.Registerer, filename string) (Cache, error) {
+	if filename == "" {
+		return nil, fmt.Errorf("must specify cache filename")
+	}
 	cache := cacheImpl{
-		dbFilename: "picsync-metadata-cache.db",
+		dbFilename: filename,
 	}
 	var err error
 

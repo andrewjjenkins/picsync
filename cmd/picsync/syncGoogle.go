@@ -57,7 +57,7 @@ func runSync(cmd *cobra.Command, args []string) {
 	// Create the cache up here so we can pass it down, this avoids
 	// re-creating the cache (opening/closing Sqlite db) every run
 	// and simplifies prometheus (which doesn't want the metrics re-registered)
-	clients.cache, err = cache.New(promReg)
+	clients.cache, err = cache.New(promReg, cacheFilename)
 	if err != nil {
 		panic(err)
 	}

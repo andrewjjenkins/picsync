@@ -141,7 +141,7 @@ func getGooglephotoClientOrExit(c cache.Cache) googlephotos.Client {
 }
 
 func runGooglephotosList(cmd *cobra.Command, args []string) {
-	myCache, err := cache.New(promReg)
+	myCache, err := cache.New(promReg, cacheFilename)
 	if err != nil {
 		panic(err)
 	}

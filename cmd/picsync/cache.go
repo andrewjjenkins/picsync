@@ -18,16 +18,25 @@ var (
 		Short: "Report status of the cache",
 		Run:   runCacheStatus,
 	}
+
+	cacheFilename = ""
 )
 
 func init() {
 	cacheCmd.AddCommand(cacheStatusCmd)
 
 	rootCmd.AddCommand(cacheCmd)
+
+	rootCmd.PersistentFlags().StringVar(
+		&cacheFilename,
+		"cache",
+		"picsync-metadata-cache.db",
+		"Path to cache file",
+	)
 }
 
 func runCacheStatus(cmd *cobra.Command, args []string) {
-	cache, err := cache.New(promReg)
+	cache, err := cache.New(promReg, cacheFilename)
 	if err != nil {
 		panic(err)
 	}
