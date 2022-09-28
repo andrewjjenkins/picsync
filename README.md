@@ -27,6 +27,34 @@ go build ./cmd/picsync
 ./picsync --help
 ```
 
+Google API Key Setup
+--------------------
+
+*Note: This step is required until the app is approved by Google and we can
+get permanent API keys.  This requires you to apply for your own Google API
+keys (as if you were a developer).*
+
+Google's generic instructions are [here](https://developers.google.com/photos/library/guides/get-started).  Note that you are choosing:
+
+- Credentials type: **OAuth 2.0 Client IDs**
+- Application type: **Desktop app**
+- Name: **Picsync** (or something meaningful to you)
+
+You will get a "Client ID" and a "Client secret".  Put these into a file called
+`.picsync-credentials.yaml`:
+
+```yaml
+googlephotos:
+  api:
+    key: "665...."  # The Client ID
+    secret: "GO..." # The Client secret
+```
+
+When you complete `picsync googlephotos login` later, you will get a warning
+about an unapproved app named Picsync (or whatever you chose) wanting read-only
+access to google photos data.  Check that it is the same as the Name you chose
+above.
+
 Setup
 -----
 
@@ -177,8 +205,7 @@ picsync sync
 This will sync all photos from the source albums to the 
 destination album.
 
-If an album of that name doesn't exist in Nixplay, you need to create it (just go
-to https://app.nixplay.com/#/albums/nixplay/ and do "Create an album").
+If an album of that name doesn't exist in Nixplay, it will be created.
 
 Nixplay also has a concept of Playlist (formerly known as 
 Slideshow), which would let you pick parts of an album without deleting the whole
@@ -188,8 +215,27 @@ make a playlist/slideshow called "ss_<albumName>" and automatically sync the alb
 into the playlist.  So, for the above example, the Nixplay album is called 
 `AllMyStuff` and the Nixplay playlist is called "ss_AllMyStuff".
 
+Syncing Playlists to Frames
+---------------------------
+
+Once successful, you will get a message like:
+
+```
+Could not find playlist "ss_test" (did not find playlist "ss_test" in 10 playlists), creating
+If this works, you must then assign the playlist ss_test to frames - this program will not do that (but it will update the playlist once you've assigned it)
+Published 29 photos to playlist ss_test
+```
+
+This means we've successfully created the playlist and synced the photos to it,
+but it isn't yet visible on any Nixplay smart frames.  We don't manage which
+playlists are mapped to which frames (and don't manage frames at all).
+
 Go to https://app.nixplay.com/#/frames/ and click on a frame, then click "Enable
-Playlist" for `ss_Nixplay Album` and it should automatically sync.
+Playlist" for `ss_test` and Nixplay will automatically sync to the frame.
+
+This is a one-time step for a playlist - once a playlist is mapped to one
+or more frames, we can update the photos in the playlist and Nixplay will
+automatically sync them out for us.  You don't need to log back into Nixplay.
 
 Looping
 -------
@@ -292,9 +338,8 @@ Sept 2022).
 
 Roadmap/Help Wanted
 -------------------
-1. Instructions on creating the Google Photos App API Client ID
+
 1. Getting the app generally approved so that users don't have to bring their own API client ID
-1. Create album in Nixplay if it doesn't exist already.
 
 License
 -------
