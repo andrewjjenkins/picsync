@@ -27,6 +27,34 @@ go build ./cmd/picsync
 ./picsync --help
 ```
 
+Google API Key Setup
+--------------------
+
+*Note: This step is required until the app is approved by Google and we can
+get permanent API keys.  This requires you to apply for your own Google API
+keys (as if you were a developer).*
+
+Google's generic instructions are [here](https://developers.google.com/photos/library/guides/get-started).  Note that you are choosing:
+
+- Credentials type: **OAuth 2.0 Client IDs**
+- Application type: **Desktop app**
+- Name: **Picsync** (or something meaningful to you)
+
+You will get a "Client ID" and a "Client secret".  Put these into a file called
+`.picsync-credentials.yaml`:
+
+```yaml
+googlephotos:
+  api:
+    key: "665...."  # The Client ID
+    secret: "GO..." # The Client secret
+```
+
+When you complete `picsync googlephotos login` later, you will get a warning
+about an unapproved app named Picsync (or whatever you chose) wanting read-only
+access to google photos data.  Check that it is the same as the Name you chose
+above.
+
 Setup
 -----
 
@@ -310,9 +338,8 @@ Sept 2022).
 
 Roadmap/Help Wanted
 -------------------
-1. Instructions on creating the Google Photos App API Client ID
+
 1. Getting the app generally approved so that users don't have to bring their own API client ID
-1. Create album in Nixplay if it doesn't exist already.
 
 License
 -------
