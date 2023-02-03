@@ -57,27 +57,23 @@ func (c *clientImpl) GetAlbums() ([]*Album, error) {
 	return albums, err
 }
 
-func (c *clientImpl) GetAlbumByName(albumName string) (*Album, error) {
-	npAlbums, err := c.GetAlbums()
+func (c *clientImpl) GetAlbumsByName(albumName string) ([]*Album, error) {
+	allAlbums, err := c.GetAlbums()
 	if err != nil {
 		return nil, err
 	}
-	var npAlbum *Album
-	for _, a := range npAlbums {
+	var npAlbums []*Album
+	for _, a := range allAlbums {
 		if a.Title == albumName {
-			if npAlbum != nil {
-				c.prom.getAlbumByNameFailure.Inc()
-				return nil, fmt.Errorf("duplicate Nixplay albums named %s", albumName)
-			}
-			npAlbum = a
+			npAlbums = append(npAlbums, a)
 		}
 	}
-	if npAlbum == nil {
-		c.prom.getAlbumByNameFailure.Inc()
-		return nil, fmt.Errorf("could not find Nixplay album %s", albumName)
+	if len(npAlbums) == 0 {
+		c.prom.getAlbumByNameEmpty.Inc()
+	} else {
+		c.prom.getAlbumByNameSuccess.Inc()
 	}
-	c.prom.getAlbumByNameSuccess.Inc()
-	return npAlbum, nil
+	return npAlbums, nil
 }
 
 func (c *clientImpl) CreateAlbum(name string) (*Album, error) {
@@ -113,4 +109,61 @@ func (c *clientImpl) CreateAlbum(name string) (*Album, error) {
 	}
 	c.prom.createAlbumSuccess.Inc()
 	return resData[0], nil
+}
+
+func (c *clientImpl) DeleteAlbumByID(id int) error {
+	vals := url.Values{}
+	url := fmt.Sprintf("https://api.nixplay.com/album/%d/delete/json/", id)
+	fmt.Printf("POST to %s\n", url)
+	res, err := doPost(c.httpClient, url, &vals)
+	if err != nil {
+		c.prom.deleteAlbumFailure.Inc()
+		return err
+	}
+	defer res.Body.Close()
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.prom.deleteAlbumFailure.Inc()
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		c.prom.createAlbumFailure.Inc()
+		return fmt.Errorf("Couldn't delete album %d: http %d: %s", id,
+			res.StatusCode, resBody)
+	}
+
+	// We don't care about the body
+	return nil
+}
+
+func (c *clientImpl) DeleteAlbumsByName(albumName string, allowMultiple bool) (int, error) {
+	allAlbums, err := c.GetAlbums()
+	if err != nil {
+		return 0, err
+	}
+	var matchingAlbums []*Album
+	for _, a := range allAlbums {
+		if a.Title == albumName {
+			matchingAlbums = append(matchingAlbums, a)
+		}
+	}
+	if len(matchingAlbums) == 0 {
+		return 0, nil
+	}
+	if len(matchingAlbums) > 1 && allowMultiple == false {
+		return 0, fmt.Errorf(
+			"%d albums named %s, but only allowed to delete one (see \"--delete-multiple\")",
+			len(matchingAlbums),
+			albumName,
+		)
+	}
+	var deletedCount int
+	for _, a := range matchingAlbums {
+		err := c.DeleteAlbumByID(a.ID)
+		if err != nil {
+			return deletedCount, err
+		}
+		deletedCount++
+	}
+	return deletedCount, nil
 }

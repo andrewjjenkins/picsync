@@ -33,12 +33,17 @@ type Photo struct {
 }
 
 // GetPhotos returns the photos in an album
-func (c *clientImpl) GetPhotos(albumID int) ([]*Photo, error) {
+func (c *clientImpl) GetPhotos(albumID int, page int, limit int) ([]*Photo, error) {
 	type getPhotosResponse struct {
 		Photos []*Photo `json:"photos"`
 	}
 	photos := getPhotosResponse{}
-	u := fmt.Sprintf("https://api.nixplay.com/album/%d/pictures/json", albumID)
+	u := fmt.Sprintf(
+		"https://api.nixplay.com/album/%d/pictures/json/?page=%d&limit=%d",
+		albumID,
+		page,
+		limit,
+	)
 	err := util.GetUnmarshalJSON(c.httpClient, u, &photos)
 	if err != nil {
 		c.prom.getPhotosFailure.Inc()
