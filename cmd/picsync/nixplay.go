@@ -100,41 +100,51 @@ func runNixplayListAlbum(albumName string) {
 		panic(err)
 	}
 	for _, npAlbum := range npAlbums {
-		npPhotos, err := npClient.GetPhotos(npAlbum.ID)
-		if err != nil {
-			panic(err)
-		}
-
-		var c cache.Cache
-		if updateCache {
-			c, err = cache.New(promReg, cacheFilename)
+		page := 1
+		limit := 100
+		fmt.Printf("Photos for album %s (%d)\n", npAlbum.Title, npAlbum.ID)
+		for {
+			npPhotos, err := npClient.GetPhotos(npAlbum.ID, page, limit)
 			if err != nil {
 				panic(err)
 			}
-		}
 
-		fmt.Printf("Photos for album %s (%d)\n", npAlbum.Title, npAlbum.ID)
-		for i, p := range npPhotos {
-			fmt.Printf("Nixplay Photo %d:\n", i)
-			fmt.Printf("  Filename: %s\n", p.Filename)
-			fmt.Printf("  Date: %s\n", p.SortDate)
-			fmt.Printf("  URL: %s\n", p.URL)
-			fmt.Printf("  MD5: %s\n", p.Md5)
+			var c cache.Cache
 			if updateCache {
-				timeNow := time.Now()
-				err := c.UpsertNixplay(&cache.NixplayData{
-					NixplayId:   p.ID,
-					URL:         p.URL,
-					Filename:    p.Filename,
-					SortDate:    p.SortDate,
-					Md5:         p.Md5,
-					LastUpdated: timeNow,
-					LastUsed:    timeNow,
-				})
+				c, err = cache.New(promReg, cacheFilename)
 				if err != nil {
 					panic(err)
 				}
 			}
+
+			for i, p := range npPhotos {
+				fmt.Printf("Nixplay Photo %d:\n", i+((page-1)*limit))
+				fmt.Printf("  Filename: %s\n", p.Filename)
+				fmt.Printf("  Date: %s\n", p.SortDate)
+				fmt.Printf("  URL: %s\n", p.URL)
+				fmt.Printf("  MD5: %s\n", p.Md5)
+				if updateCache {
+					timeNow := time.Now()
+					err := c.UpsertNixplay(&cache.NixplayData{
+						NixplayId:   p.ID,
+						URL:         p.URL,
+						Filename:    p.Filename,
+						SortDate:    p.SortDate,
+						Md5:         p.Md5,
+						LastUpdated: timeNow,
+						LastUsed:    timeNow,
+					})
+					if err != nil {
+						panic(err)
+					}
+				}
+
+			}
+
+			if len(npPhotos) < limit {
+				break
+			}
+			page++
 		}
 	}
 }

@@ -166,10 +166,23 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 	}
 
 	// Get the nixplay image metadata for the requested album
-	npPhotos, err := clients.nixplay.GetPhotos(npAlbum.ID)
-	if err != nil {
-		return err
+	var npPhotos []*nixplay.Photo
+	page := 1
+	limit := 100
+	for {
+		fmt.Fprintf(os.Stdout, "\033[2k\rRefreshing destination image %d...", len(npPhotos))
+		photos, err := clients.nixplay.GetPhotos(npAlbum.ID, page, limit)
+		if err != nil {
+			return err
+		}
+		page++
+		npPhotos = append(npPhotos, photos...)
+		if len(photos) < limit {
+			break
+		}
 	}
+	fmt.Fprintf(os.Stdout, "\033[2K\rRefreshed %d destination images for album %s\n",
+		len(npPhotos), npAlbum.Title)
 
 	work, err := calcSyncGooglephotosWork(sourceCacheImages, npPhotos)
 	if err != nil {
@@ -212,10 +225,23 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 
 	// FIXME: This should be commonized
 	// Now, get the photos again and put them in a playlist
-	npPhotos, err = clients.nixplay.GetPhotos(npAlbum.ID)
-	if err != nil {
-		return err
+	npPhotos = nil
+	page = 1
+	limit = 100
+	for {
+		fmt.Fprintf(os.Stdout, "\033[2k\rRefreshing playlist image %d...", len(npPhotos))
+		photos, err := clients.nixplay.GetPhotos(npAlbum.ID, page, limit)
+		if err != nil {
+			return err
+		}
+		page++
+		npPhotos = append(npPhotos, photos...)
+		if len(photos) < limit {
+			break
+		}
 	}
+	fmt.Fprintf(os.Stdout, "\033[2K\rRefreshed %d playlist images for album %s\n",
+		len(npPhotos), npAlbum.Title)
 	plName := fmt.Sprintf("ss_%s", album.Name)
 	pl, err := clients.nixplay.GetPlaylistByName(plName)
 	var playlistId int

@@ -14,7 +14,7 @@ type Client interface {
 	CreateAlbum(albumName string) (*Album, error)
 	DeleteAlbumsByName(albumName string, allowMultiple bool) (int, error)
 	DeleteAlbumByID(albumID int) error
-	GetPhotos(albumID int) ([]*Photo, error)
+	GetPhotos(albumID int, page int, limit int) ([]*Photo, error)
 	UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.ReadCloser) error
 	DeletePhoto(id int) error
 	CreatePlaylist(name string) (int, error)
