@@ -12,6 +12,7 @@ type promImpl struct {
 	getAlbumsFailure         prometheus.Counter
 	getAlbumByNameSuccess    prometheus.Counter
 	getAlbumByNameFailure    prometheus.Counter
+	getAlbumByNameEmpty      prometheus.Counter
 	getPhotosSuccess         prometheus.Counter
 	getPhotosFailure         prometheus.Counter
 	getPhotosPhotoCount      prometheus.Counter
@@ -57,6 +58,12 @@ func (c *clientImpl) promRegister(reg prometheus.Registerer) error {
 		prometheus.CounterOpts{
 			Name: "nixplay_get_album_by_name_failure",
 			Help: "Failed calls to get an album by name",
+		},
+	)
+	c.prom.getAlbumByNameEmpty = c.prom.promFactory.NewCounter(
+		prometheus.CounterOpts{
+			Name: "nixplay_get_album_by_name_empty",
+			Help: "There is no album with the name requested",
 		},
 	)
 	c.prom.getPhotosSuccess = c.prom.promFactory.NewCounter(

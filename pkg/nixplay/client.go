@@ -10,7 +10,7 @@ import (
 
 type Client interface {
 	GetAlbums() ([]*Album, error)
-	GetAlbumByName(albumName string) (*Album, error)
+	GetAlbumsByName(albumName string) ([]*Album, error)
 	CreateAlbum(albumName string) (*Album, error)
 	GetPhotos(albumID int) ([]*Photo, error)
 	UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.ReadCloser) error

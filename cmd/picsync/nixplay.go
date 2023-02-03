@@ -56,50 +56,55 @@ func runNixplayListAlbums() {
 		fmt.Printf("Nixplay album %s:\n", a.Title)
 		fmt.Printf("  Photos: %d\n", a.PhotoCount)
 		fmt.Printf("  Published: %t\n", a.Published)
+		fmt.Printf("  ID: %d\n", a.ID)
 	}
 }
 
 func runNixplayListAlbum(albumName string) {
 	npClient := getNixplayClientOrExit()
 
-	npAlbum, err := npClient.GetAlbumByName(albumName)
+	npAlbums, err := npClient.GetAlbumsByName(albumName)
 	if err != nil {
 		panic(err)
 	}
-	npPhotos, err := npClient.GetPhotos(npAlbum.ID)
-	if err != nil {
-		panic(err)
-	}
-
-	var c cache.Cache
-	if updateCache {
-		c, err = cache.New(promReg, cacheFilename)
+	for _, npAlbum := range npAlbums {
+		npPhotos, err := npClient.GetPhotos(npAlbum.ID)
 		if err != nil {
 			panic(err)
 		}
-	}
 
-	fmt.Printf("Photos for album %s (%d)\n", npAlbum.Title, npAlbum.ID)
-	for i, p := range npPhotos {
-		fmt.Printf("Nixplay Photo %d:\n", i)
-		fmt.Printf("  Filename: %s\n", p.Filename)
-		fmt.Printf("  Date: %s\n", p.SortDate)
-		fmt.Printf("  URL: %s\n", p.URL)
-		fmt.Printf("  MD5: %s\n", p.Md5)
+		var c cache.Cache
 		if updateCache {
-			timeNow := time.Now()
-			err := c.UpsertNixplay(&cache.NixplayData{
-				NixplayId:   p.ID,
-				URL:         p.URL,
-				Filename:    p.Filename,
-				SortDate:    p.SortDate,
-				Md5:         p.Md5,
-				LastUpdated: timeNow,
-				LastUsed:    timeNow,
-			})
+			c, err = cache.New(promReg, cacheFilename)
 			if err != nil {
 				panic(err)
 			}
 		}
+
+		fmt.Printf("Photos for album %s (%d)\n", npAlbum.Title, npAlbum.ID)
+		for i, p := range npPhotos {
+			fmt.Printf("Nixplay Photo %d:\n", i)
+			fmt.Printf("  Filename: %s\n", p.Filename)
+			fmt.Printf("  Date: %s\n", p.SortDate)
+			fmt.Printf("  URL: %s\n", p.URL)
+			fmt.Printf("  MD5: %s\n", p.Md5)
+			if updateCache {
+				timeNow := time.Now()
+				err := c.UpsertNixplay(&cache.NixplayData{
+					NixplayId:   p.ID,
+					URL:         p.URL,
+					Filename:    p.Filename,
+					SortDate:    p.SortDate,
+					Md5:         p.Md5,
+					LastUpdated: timeNow,
+					LastUsed:    timeNow,
+				})
+				if err != nil {
+					panic(err)
+				}
+			}
+		}
+	}
+}
 	}
 }

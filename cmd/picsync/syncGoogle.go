@@ -141,15 +141,31 @@ func doSyncGooglephotos(clients syncClients, album *util.ConfigAlbum) error {
 			sourceCacheUpdateCount, i+1, len(sourceAlbums))
 	}
 
-	// Get the nixplay image metadata for the requested album
-	npAlbum, err := clients.nixplay.GetAlbumByName(album.Name)
+	// Get the nixplay album specified by the user.
+	// It is possible for there to be multiple albums with the same name
+	// (they will have different IDs).  We don't support that however.
+	npAlbums, err := clients.nixplay.GetAlbumsByName(album.Name)
 	if err != nil {
+		return err
+	}
+	var npAlbum *nixplay.Album
+	if len(npAlbums) == 0 {
 		fmt.Printf("Could not get nixplay album %s, creating.\n", album.Name)
 		npAlbum, err = clients.nixplay.CreateAlbum(album.Name)
 		if err != nil {
 			return err
 		}
+	} else if len(npAlbums) > 1 {
+		// See "picsync nixplay delete album --delete-multiple"
+		return fmt.Errorf(
+			"multiple nixplay albums named %s, you must delete all but one",
+			album.Name,
+		)
+	} else {
+		npAlbum = npAlbums[0]
 	}
+
+	// Get the nixplay image metadata for the requested album
 	npPhotos, err := clients.nixplay.GetPhotos(npAlbum.ID)
 	if err != nil {
 		return err

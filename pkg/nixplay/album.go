@@ -57,27 +57,23 @@ func (c *clientImpl) GetAlbums() ([]*Album, error) {
 	return albums, err
 }
 
-func (c *clientImpl) GetAlbumByName(albumName string) (*Album, error) {
-	npAlbums, err := c.GetAlbums()
+func (c *clientImpl) GetAlbumsByName(albumName string) ([]*Album, error) {
+	allAlbums, err := c.GetAlbums()
 	if err != nil {
 		return nil, err
 	}
-	var npAlbum *Album
-	for _, a := range npAlbums {
+	var npAlbums []*Album
+	for _, a := range allAlbums {
 		if a.Title == albumName {
-			if npAlbum != nil {
-				c.prom.getAlbumByNameFailure.Inc()
-				return nil, fmt.Errorf("duplicate Nixplay albums named %s", albumName)
-			}
-			npAlbum = a
+			npAlbums = append(npAlbums, a)
 		}
 	}
-	if npAlbum == nil {
-		c.prom.getAlbumByNameFailure.Inc()
-		return nil, fmt.Errorf("could not find Nixplay album %s", albumName)
+	if len(npAlbums) == 0 {
+		c.prom.getAlbumByNameEmpty.Inc()
+	} else {
+		c.prom.getAlbumByNameSuccess.Inc()
 	}
-	c.prom.getAlbumByNameSuccess.Inc()
-	return npAlbum, nil
+	return npAlbums, nil
 }
 
 func (c *clientImpl) CreateAlbum(name string) (*Album, error) {
