@@ -23,6 +23,8 @@ type promImpl struct {
 	deletePhotoFailure       prometheus.Counter
 	createAlbumSuccess       prometheus.Counter
 	createAlbumFailure       prometheus.Counter
+	deleteAlbumSuccess       prometheus.Counter
+	deleteAlbumFailure       prometheus.Counter
 	createPlaylistSuccess    prometheus.Counter
 	createPlaylistFailure    prometheus.Counter
 	getPlaylistsSuccess      prometheus.Counter
@@ -126,6 +128,19 @@ func (c *clientImpl) promRegister(reg prometheus.Registerer) error {
 			Help: "Failed creation of album",
 		},
 	)
+	c.prom.deleteAlbumSuccess = c.prom.promFactory.NewCounter(
+		prometheus.CounterOpts{
+			Name: "nixplay_delete_album_success",
+			Help: "Successful deletion of album",
+		},
+	)
+	c.prom.deleteAlbumFailure = c.prom.promFactory.NewCounter(
+		prometheus.CounterOpts{
+			Name: "nixplay_delete_album_failure",
+			Help: "Failed deletion of album",
+		},
+	)
+
 	c.prom.createPlaylistSuccess = c.prom.promFactory.NewCounter(
 		prometheus.CounterOpts{
 			Name: "nixplay_create_playlist_success",

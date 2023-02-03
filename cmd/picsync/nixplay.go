@@ -19,6 +19,30 @@ var (
 		Short: "List albums or photos in a specific album",
 		Run:   runNixplayList,
 	}
+
+	nixplayDeleteCmd = &cobra.Command{
+		Use:   "delete",
+		Short: "Delete albums or photos",
+	}
+
+	nixplayDeleteAlbumCmd = &cobra.Command{
+		Use:   "album <albumName>",
+		Short: "Delete all albums named <albumName>",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("must specify album to delete")
+			}
+			albumName := args[0]
+			if albumName == "" {
+				return fmt.Errorf("must specify album to delete")
+			}
+			runNixplayDeleteAlbum(albumName)
+			return nil
+		},
+	}
+
+	allowDeleteMultiple bool
 )
 
 func init() {
@@ -28,8 +52,16 @@ func init() {
 		false,
 		"Also update the cache when listing (temporarily downloads each image)",
 	)
+	nixplayDeleteAlbumCmd.PersistentFlags().BoolVar(
+		&allowDeleteMultiple,
+		"delete-multiple",
+		false,
+		"If there are multiple albums with the same name, delete them all instead of quitting",
+	)
 
 	nixplayCmd.AddCommand(nixplayListCmd)
+	nixplayDeleteCmd.AddCommand(nixplayDeleteAlbumCmd)
+	nixplayCmd.AddCommand(nixplayDeleteCmd)
 	rootCmd.AddCommand(nixplayCmd)
 }
 
@@ -106,5 +138,13 @@ func runNixplayListAlbum(albumName string) {
 		}
 	}
 }
+
+func runNixplayDeleteAlbum(albumName string) {
+	npClient := getNixplayClientOrExit()
+
+	deletedCount, err := npClient.DeleteAlbumsByName(albumName, allowDeleteMultiple)
+	if err != nil {
+		panic(err)
 	}
+	fmt.Printf("Deleted %d albums named %s\n", deletedCount, albumName)
 }

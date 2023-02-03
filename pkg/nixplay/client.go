@@ -12,6 +12,8 @@ type Client interface {
 	GetAlbums() ([]*Album, error)
 	GetAlbumsByName(albumName string) ([]*Album, error)
 	CreateAlbum(albumName string) (*Album, error)
+	DeleteAlbumsByName(albumName string, allowMultiple bool) (int, error)
+	DeleteAlbumByID(albumID int) error
 	GetPhotos(albumID int) ([]*Photo, error)
 	UploadPhoto(albumID int, filename string, filetype string, filesize uint64, body io.ReadCloser) error
 	DeletePhoto(id int) error
@@ -33,9 +35,13 @@ func NewClient(username, password string, reg prometheus.Registerer) (Client, er
 	if err != nil {
 		return nil, err
 	}
+	tr := &http.Transport{
+		ResponseHeaderTimeout: time.Duration(600 * time.Second),
+	}
 	httpClient := &http.Client{
-		Timeout: time.Duration(30 * time.Second),
-		Jar:     auth.Jar,
+		Timeout:   time.Duration(600 * time.Second),
+		Transport: tr,
+		Jar:       auth.Jar,
 	}
 	client := clientImpl{
 		httpClient: httpClient,

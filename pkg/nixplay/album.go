@@ -110,3 +110,60 @@ func (c *clientImpl) CreateAlbum(name string) (*Album, error) {
 	c.prom.createAlbumSuccess.Inc()
 	return resData[0], nil
 }
+
+func (c *clientImpl) DeleteAlbumByID(id int) error {
+	vals := url.Values{}
+	url := fmt.Sprintf("https://api.nixplay.com/album/%d/delete/json/", id)
+	fmt.Printf("POST to %s\n", url)
+	res, err := doPost(c.httpClient, url, &vals)
+	if err != nil {
+		c.prom.deleteAlbumFailure.Inc()
+		return err
+	}
+	defer res.Body.Close()
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.prom.deleteAlbumFailure.Inc()
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		c.prom.createAlbumFailure.Inc()
+		return fmt.Errorf("Couldn't delete album %d: http %d: %s", id,
+			res.StatusCode, resBody)
+	}
+
+	// We don't care about the body
+	return nil
+}
+
+func (c *clientImpl) DeleteAlbumsByName(albumName string, allowMultiple bool) (int, error) {
+	allAlbums, err := c.GetAlbums()
+	if err != nil {
+		return 0, err
+	}
+	var matchingAlbums []*Album
+	for _, a := range allAlbums {
+		if a.Title == albumName {
+			matchingAlbums = append(matchingAlbums, a)
+		}
+	}
+	if len(matchingAlbums) == 0 {
+		return 0, nil
+	}
+	if len(matchingAlbums) > 1 && allowMultiple == false {
+		return 0, fmt.Errorf(
+			"%d albums named %s, but only allowed to delete one (see \"--delete-multiple\")",
+			len(matchingAlbums),
+			albumName,
+		)
+	}
+	var deletedCount int
+	for _, a := range matchingAlbums {
+		err := c.DeleteAlbumByID(a.ID)
+		if err != nil {
+			return deletedCount, err
+		}
+		deletedCount++
+	}
+	return deletedCount, nil
+}
