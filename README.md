@@ -1,6 +1,9 @@
 Picsync
 =======
 
+> :warning: **Hobby Project rarely updated**: Please check "last updated" date; I've stopped actively maintaining this project.
+
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/andrewjjenkins/picsync)](https://goreportcard.com/report/github.com/andrewjjenkins/picsync)
 
 
